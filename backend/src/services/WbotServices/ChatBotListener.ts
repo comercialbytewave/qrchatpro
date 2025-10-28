@@ -1,4 +1,4 @@
-import { proto, WASocket } from "@whiskeysockets/baileys";
+import { proto, WAMessage, WASocket } from "@whiskeysockets/baileys";
 import Contact from "../../models/Contact";
 import Ticket from "../../models/Ticket";
 
@@ -673,7 +673,7 @@ export const sayChatbot = async (
   wbot: Session,
   ticket: Ticket,
   contact: Contact,
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   ticketTraking: TicketTraking
 ): Promise<any> => {
   // console.log("LINHA 718")

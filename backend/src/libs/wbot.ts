@@ -1,19 +1,18 @@
 import * as Sentry from "@sentry/node";
 import makeWASocket, {
-  AuthenticationState,
   Browsers,
   DisconnectReason,
   WAMessage,
   WAMessageKey,
   WASocket,
   fetchLatestBaileysVersion,
-  fetchLatestWaWebVersion,
   isJidBroadcast,
   isJidGroup,
   jidNormalizedUser,
   makeCacheableSignalKeyStore,
-  makeInMemoryStore,
 } from "@whiskeysockets/baileys";
+
+import makeInMemoryStore from "@whiskeysockets/baileys";
 import { FindOptions } from "sequelize/types";
 import Whatsapp from "../models/Whatsapp";
 import logger from "../utils/logger";
@@ -57,6 +56,7 @@ type Session = WASocket & {
 const sessions: Session[] = [];
 
 const retriesQrCodeMap = new Map<number, number>();
+
 
 export default function msg() {
   return {
@@ -111,7 +111,7 @@ export const restartWbot = async (
     whatsapp.map(async c => {
       const sessionIndex = sessions.findIndex(s => s.id === c.id);
       if (sessionIndex !== -1) {
-        sessions[sessionIndex].ws.close(undefined);
+        sessions[sessionIndex].ws.close();
       }
 
     });
@@ -167,9 +167,13 @@ export const initWASocket = async (whatsapp: Whatsapp): Promise<Session> => {
         let retriesQrCode = 0;
 
         let wsocket: Session = null;
-        const store = makeInMemoryStore({
-          logger: loggerBaileys
-        });
+
+        
+        
+        //const store = makeInMemoryStore({
+         // logger: loggerBaileys
+        //});
+
         const { state, saveCreds } = await useMultiFileAuthState(whatsapp);
 
         wsocket = makeWASocket({

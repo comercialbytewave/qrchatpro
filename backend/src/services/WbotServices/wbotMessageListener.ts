@@ -108,7 +108,7 @@ type Session = WASocket & {
 };
 
 interface ImessageUpsert {
-  messages: proto.IWebMessageInfo[];
+  messages: WAMessage[];
   type: MessageUpsertType;
 }
 
@@ -172,7 +172,7 @@ const contactsArrayMessageGet = (msg: any,) => {
   return finalContacts
 }
 
-const getTypeMessage = (msg: proto.IWebMessageInfo): string => {
+const getTypeMessage = (msg: WAMessage): string => {
   const msgType = getContentType(msg.message);
   if (msg.message?.viewOnceMessageV2) {
     return "viewOnceMessageV2"
@@ -224,7 +224,7 @@ const msgLocation = (image, latitude, longitude) => {
   }
 };
 
-export const getBodyMessage = (msg: proto.IWebMessageInfo): string | null => {
+export const getBodyMessage = (msg: WAMessage): string | null => {
   try {
     let type = getTypeMessage(msg);
 
@@ -281,7 +281,7 @@ export const getBodyMessage = (msg: proto.IWebMessageInfo): string | null => {
   }
 };
 
-export const getQuotedMessage = (msg: proto.IWebMessageInfo) => {
+export const getQuotedMessage = (msg: WAMessage) => {
   const body = extractMessageContent(msg.message)[
     Object.keys(msg?.message).values().next().value
   ];
@@ -296,7 +296,7 @@ export const getQuotedMessage = (msg: proto.IWebMessageInfo) => {
   return quoted;
 };
 
-export const getQuotedMessageId = (msg: proto.IWebMessageInfo) => {
+export const getQuotedMessageId = (msg: WAMessage) => {
   const body = extractMessageContent(msg.message)[
     Object.keys(msg?.message).values().next().value
   ];
@@ -315,7 +315,7 @@ const getMeSocket = (wbot: Session): IMe => {
 };
 
 const getSenderMessage = (
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   wbot: Session
 ): string => {
   const me = getMeSocket(wbot);
@@ -327,7 +327,7 @@ const getSenderMessage = (
   return senderId && jidNormalizedUser(senderId);
 };
 
-const getContactMessage = async (msg: proto.IWebMessageInfo, wbot: Session) => {
+const getContactMessage = async (msg: WAMessage, wbot: Session) => {
   const isGroup = msg.key.remoteJid.includes("g.us");
   const rawNumber = msg.key.remoteJid.replace(/\D/g, "");
   return isGroup
@@ -360,7 +360,7 @@ function findCaption(obj) {
   return null;
 }
 
-// const downloadMedia = async (msg: proto.IWebMessageInfo, companyId: number, whatsappId: number) => {
+// const downloadMedia = async (msg: WAMessage, companyId: number, whatsappId: number) => {
 //   const mineType =
 //     msg.message?.imageMessage ||
 //     msg.message?.audioMessage ||
@@ -494,7 +494,7 @@ function findCaption(obj) {
 //   return media;
 // };
 
-const downloadMedia = async (msg: proto.IWebMessageInfo, isImported: Date = null, wbot: Session) => {
+const downloadMedia = async (msg: WAMessage, isImported: Date = null, wbot: Session) => {
 
   if (msg.message?.stickerMessage) {
     const urlAnt = "https://web.whatsapp.net";
@@ -609,7 +609,7 @@ const verifyContact = async (
 };
 
 const verifyQuotedMessage = async (
-  msg: proto.IWebMessageInfo
+  msg: WAMessage
 ): Promise<Message | null> => {
   if (!msg) return null;
   const quoted = getQuotedMessageId(msg);
@@ -626,7 +626,7 @@ const verifyQuotedMessage = async (
 };
 
 export const verifyMediaMessage = async (
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   ticket: Ticket,
   contact: Contact,
   ticketTraking: TicketTraking,
@@ -853,7 +853,7 @@ export const verifyMediaMessage = async (
 };
 
 export const verifyMessage = async (
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   ticket: Ticket,
   contact: Contact,
   ticketTraking?: TicketTraking,
@@ -928,7 +928,7 @@ export const verifyMessage = async (
   }
 };
 
-const isValidMsg = (msg: proto.IWebMessageInfo): boolean => {
+const isValidMsg = (msg: WAMessage): boolean => {
   if (msg.key.remoteJid === "status@broadcast") return false;
   try {
     const msgType = getTypeMessage(msg);
@@ -1159,7 +1159,7 @@ async function sendDelayedMessages(
 
 const verifyQueue = async (
   wbot: Session,
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   ticket: Ticket,
   contact: Contact,
   settings?: any,
@@ -2003,7 +2003,7 @@ const keepOnlySpecifiedChars = (str: string) => {
 };
 
 const handleOpenAi = async (
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   wbot: Session,
   ticket: Ticket,
   contact: Contact,
@@ -2212,7 +2212,7 @@ const transferQueue = async (
 };
 
 const flowbuilderIntegration = async (
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   wbot: Session,
   companyId: number,
   queueIntegration: QueueIntegrations,
@@ -2583,7 +2583,7 @@ const flowbuilderIntegration = async (
 
 }
 export const handleMessageIntegration = async (
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   wbot: Session,
   companyId: number,
   queueIntegration: QueueIntegrations,
@@ -2664,7 +2664,7 @@ export const handleMessageIntegration = async (
 
 const flowBuilderQueue = async (
   ticket: Ticket,
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   wbot: Session,
   whatsapp: Whatsapp,
   companyId: number,
@@ -2717,7 +2717,7 @@ const flowBuilderQueue = async (
 }
 
 const handleMessage = async (
-  msg: proto.IWebMessageInfo,
+  msg: WAMessage,
   wbot: Session,
   companyId: number,
   isImported: boolean = false,
@@ -3259,7 +3259,7 @@ const handleMsgAck = async (
 };
 
 const verifyRecentCampaign = async (
-  message: proto.IWebMessageInfo,
+  message: WAMessage,
   companyId: number
 ) => {
   if (!isValidMsg(message)) {
@@ -3296,7 +3296,7 @@ const verifyRecentCampaign = async (
   }
 };
 
-const verifyCampaignMessageAndCloseTicket = async (message: proto.IWebMessageInfo, companyId: number, wbot: Session) => {
+const verifyCampaignMessageAndCloseTicket = async (message: WAMessage, companyId: number, wbot: Session) => {
   if (!isValidMsg(message)) {
     return;
   }
@@ -3359,7 +3359,7 @@ const filterMessages = (msg: WAMessage): boolean => {
       WAMessageStubType.E2E_DEVICE_CHANGED,
       WAMessageStubType.E2E_IDENTITY_CHANGED,
       WAMessageStubType.CIPHERTEXT
-    ].includes(msg.messageStubType as WAMessageStubType)
+    ].includes(msg.messageStubType)
   )
     return false;
 
@@ -3375,7 +3375,7 @@ const wbotMessageListener = (wbot: Session, companyId: number): void => {
     if (!messages) return;
 
     // console.log("CIAAAAAAA WBOT " , companyId)
-    messages.forEach(async (message: proto.IWebMessageInfo) => {
+    messages.forEach(async (message: WAMessage) => {
 
       if (message?.messageStubParameters?.length && message.messageStubParameters[0].includes('absent')) {
         const msg = {
@@ -3434,7 +3434,7 @@ const wbotMessageListener = (wbot: Session, companyId: number): void => {
 
     });
 
-    // messages.forEach(async (message: proto.IWebMessageInfo) => {
+    // messages.forEach(async (message: WAMessage) => {
     //   const messageExists = await Message.count({
     //     where: { id: message.key.id!, companyId }
     //   });

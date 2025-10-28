@@ -1,7 +1,7 @@
 import axios from "axios";
 import Ticket from "../../models/Ticket";
 import QueueIntegrations from "../../models/QueueIntegrations";
-import { WASocket, delay, proto } from "@whiskeysockets/baileys";
+import { WAMessage, WASocket, delay, proto } from "@whiskeysockets/baileys";
 import { getBodyMessage } from "../WbotServices/wbotMessageListener";
 import logger from "../../utils/logger";
 import { isNil } from "lodash";
@@ -42,7 +42,7 @@ const typebotListener = async ({
 
   const number = msg.key.remoteJid.replace(/\D/g, '');
 
-  let body = getBodyMessage(msg);
+  let body = getBodyMessage(msg as WAMessage);
 
   async function createSession(msg, typebot, number) {
     try {
