@@ -47,6 +47,10 @@ import {
   Dashboard,
   Description,
   DeviceHubOutlined,
+  Folder,
+  FolderOpen,
+  FolderOpenOutlined,
+  FolderOutlined,
   GridOn,
   ListAlt,
   Loyalty,
@@ -252,13 +256,15 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [openRetailSubmenu, setOpenRetailSubmenu] = useState(false);
   const [openIntegrationSubmenu, setOpenIntegrationSubmenu] = useState(false);
   const [openProductSubmenu, setOpenProductSubmenu] = useState(false);
+  const [openBudgetSubmenu, setOpenBudgetSubmenu] = useState(false);
 
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [showKanban, setShowKanban] = useState(false);
   const [showOpenAi, setShowOpenAi] = useState(false);
   const [showIntegrations, setShowIntegrations] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
-
+  const [showBudgets, setShowBudgets] = useState(false);
+  
   // novas features
   const [showSchedules, setShowSchedules] = useState(false);
   const [showInternalChat, setShowInternalChat] = useState(false);
@@ -275,6 +281,8 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [retailHover, setRetailHover] = useState(false);
   const [integrationHover, setIntegrationHover] = useState(false);
   const [productHover, setProductHover] = useState(false);
+  const [budgetHover, setBudgetHover] = useState(false);
+
   const { list } = useHelps(); // INSERIR
   const [hasHelps, setHasHelps] = useState(false);
 
@@ -309,6 +317,9 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   location.pathname.startsWith("/prompts");
 
   const isProductRouteActive = location.pathname.startsWith("/phrase-lists");
+  location.pathname.startsWith("/categories");
+
+  const isBudgetRouteActive = location.pathname.startsWith("/phrase-lists");
   location.pathname.startsWith("/categories");
 
   useEffect(() => {
@@ -932,6 +943,85 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                     icon={<ArtTrack />}
                                     tooltip={collapsed}
                                   />
+                                 
+                                </List>
+                              </Collapse>
+                            </>
+                          )}
+                        />
+                      )}
+                      {!showBudgets && (
+                        <Can
+                          role={user.profile}
+                          perform="dashboard:view"
+                          yes={() => (
+                            <>
+                              <Tooltip
+                                title={
+                                  collapsed
+                                    ? i18n.t("mainDrawer.listItems.budgets")
+                                    : ""
+                                }
+                                placement="right"
+                              >
+                                <ListItem
+                                  dense
+                                  button
+                                  onClick={() =>
+                                    setOpenBudgetSubmenu((prev) => !prev)
+                                  }
+                                  onMouseEnter={() => setBudgetHover(true)}
+                                  onMouseLeave={() => setBudgetHover(false)}
+                                >
+                                  <ListItemIcon>
+                                    <Avatar
+                                      className={`${classes.iconHoverActive} ${
+                                        isBudgetRouteActive || budgetHover
+                                          ? "active"
+                                          : ""
+                                      }`}
+                                    >
+                                      {
+                                         openBudgetSubmenu ?
+                                          <FolderOutlined /> : <FolderOpenOutlined />
+                                      }
+                                    </Avatar>
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={
+                                      <Typography
+                                        className={classes.listItemText}
+                                      >
+                                        {"Auxiliares"}
+                                      </Typography>
+                                    }
+                                  />
+                                  {openBudgetSubmenu ? (
+                                    <ExpandLessIcon />
+                                  ) : (
+                                    <ExpandMoreIcon />
+                                  )}
+                                </ListItem>
+                              </Tooltip>
+                              <Collapse
+                                in={openBudgetSubmenu}
+                                timeout="auto"
+                                unmountOnExit
+                                style={{
+                                  backgroundColor:
+                                    theme.mode === "light"
+                                      ? "rgba(120,120,120,0.1)"
+                                      : "rgba(120,120,120,0.5)",
+                                }}
+                              >
+                                <List dense component="div" disablePadding>
+                                  <ListItemLink
+                                    to="/categories"
+                                    primary={i18n.t("mainDrawer.listItems.paymentMethods")}
+                                    icon={<LocalAtmIcon />}
+                                    tooltip={collapsed}
+                                  />
+                                  
                                  
                                 </List>
                               </Collapse>

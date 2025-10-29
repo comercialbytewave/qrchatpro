@@ -51,6 +51,7 @@ import Kanban from "../pages/Kanban";
 import TagsKanban from "../pages/TagsKanban";
 import Stores from "../pages/Stores";
 import Categories from "../pages/Categories";
+import Products from "../pages/Products";
 const Routes = () => {
   const [showCampaigns, setShowCampaigns] = useState(false);
 
@@ -93,6 +94,7 @@ const Routes = () => {
                 <Route exact path="/enterprises" component={Enterprise} isPrivate />
                 <Route exact path="/stores" component={Stores} isPrivate />
                 <Route exact path="/categories" component={Categories} isPrivate />
+                <Route exact path="/products" component={Products} isPrivate />
                 <Route
                   exact
                   path="/phrase-lists"

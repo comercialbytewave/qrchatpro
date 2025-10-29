@@ -377,6 +377,26 @@ const messages = {
           cancel: "Cancelar"
         }
       },
+      productModal: {
+        title: {
+          add: "Adicionar produto",
+          edit: "Editar produto"
+        },
+        form: {
+          ean: "Ean",
+          name: "Nome",
+          code: "Código",
+          description: "Descrição",
+          isActive: "Ativo",
+          categoryId: "Categoria"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        },
+        success: "Produto salvo com sucesso."
+      },
       whatsappModal: {
         title: {
           add: "Adicionar Conexão",
@@ -698,6 +718,26 @@ const messages = {
           editSuccess: "Integração editada com sucesso.",
         },
       },
+      productStoreModal: {
+        title: {
+          add: "Adicionar preço",
+          edit: "Editar preço"
+        },
+        form: {
+          produtoId: "Produto",
+          storeId: "Loja",
+          stock: "Estoque",
+          costPrice: "Custo",
+          sellingPrice: "Preço de venda",
+          promotionPrice: "Preço de promocão"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        },
+        success: "Preço salvo com sucesso."
+      },
       userModal: {
         warning:
           "Para fazer a importação das mensagens é necessário ler o qrCode novamente !!!",
@@ -999,6 +1039,7 @@ const messages = {
           products: "Produtos",
           categories: "Categorias",
           administration: "Administração",
+          paymentMethods: "Formas de pagamento",
           companies: "Empresas",
           users: "Usuários",
           settings: "Configurações",

@@ -48,6 +48,8 @@ import flowCampaignRoutes from "./flowCampaignRoutes";
 
 import storeRoutes from "./storeRoutes";
 import categoriesRoutes from "./categoryRoutes";
+import productsRoutes from "./productRoutes";
+import productStoresRoutes from "./productStoreRoutes";
 
 const routes = Router();
 
@@ -102,5 +104,7 @@ routes.use(scheduleMessageRoutes);
 
 routes.use(storeRoutes);
 routes.use(categoriesRoutes);
+routes.use(productsRoutes);
+routes.use(productStoresRoutes);
 
 export default routes;

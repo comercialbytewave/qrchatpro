@@ -16,6 +16,7 @@ interface CompanyData {
   document?: string;
   paymentMethod?: string;
   password?: string;
+  token?: string;
 }
 
 const UpdateCompanyService = async (
@@ -34,7 +35,8 @@ const UpdateCompanyService = async (
     recurrence,
     document,
     paymentMethod,
-    password
+    password,
+    token
   } = companyData;
 
   if (!company) {
@@ -75,7 +77,8 @@ const UpdateCompanyService = async (
     dueDate,
     recurrence,
     document,
-    paymentMethod
+    paymentMethod,
+    token
   });
 
   if (companyData.campaignsEnabled !== undefined) {

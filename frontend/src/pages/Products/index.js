@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { toast } from "react-toastify";
-import moment from "moment";
+
 import { makeStyles } from "@material-ui/core/styles";
 import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
@@ -28,30 +28,34 @@ import Title from "../../components/Title";
 import api from "../../services/api";
 import { i18n } from "../../translate/i18n";
 import TableRowSkeleton from "../../components/TableRowSkeleton";
-import EnterpriseModal from "../../components/EnterpriseModal";
+import CategoryModal from "../../components/CategoryModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
+import ProductModal from "../../components/ProductModal";
 import { Tooltip } from "@mui/material";
 import { Avatar } from "@material-ui/core";
+import { AttachMoney, Cancel, CheckCircle } from "@material-ui/icons";
+import { green, red } from "@material-ui/core/colors";
+import ProductStoreModal from "../../components/ProductStoreModal";
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "LOAD_COMPANIES":
+    case "LOAD_PRODUCTS":
       return [...state, ...action.payload];
-    case "UPDATE_COMPANIES":
-      const company = action.payload;
-      const companyIndex = state.findIndex((s) => s.id === company.id);
+    case "UPDATE_PRODUCTS":
+      const product = action.payload;
+      const productIndex = state.findIndex((s) => s.id === product.id);
 
-      if (companyIndex !== -1) {
-        state[companyIndex] = company;
+      if (productIndex !== -1) {
+        state[productIndex] = product;
         return [...state];
       } else {
-        return [company, ...state];
+        return [product, ...state];
       }
-    case "DELETE_COMPANIES":
-      const companyId = action.payload;
-      return state.filter((company) => company.id !== companyId);
+    case "DELETE_PRODUCTS":
+      const productId = action.payload;
+      return state.filter((product) => product.id !== productId);
     case "RESET":
       return [];
     default:
@@ -68,7 +72,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Enterprise = () => {
+const Products = () => {
   const classes = useStyles();
   const { user, socket } = useContext(AuthContext);
 
@@ -76,19 +80,21 @@ const Enterprise = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  const [selectedCompany, setSelectedCompany] = useState(null);
-  const [deletingCompany, setDeletingCompany] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [deletingProduct, setDeletingProduct] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [searchParam, setSearchParam] = useState("");
-  const [companies, dispatch] = useReducer(reducer, []);
-  const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const [products, dispatch] = useReducer(reducer, []);
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [productStoreModalOpen, setProductStoreModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchMoreCompanies = async () => {
+    const fetchMoreProducts = async () => {
       try {
-        const { data } = await api.get(`/companies/${user.companyId}`);
-        console.log(data);
-        dispatch({ type: "LOAD_COMPANIES", payload: [data] });
+        const { data } = await api.get("/products", {
+          params: { searchParam, pageNumber },
+        });
+        dispatch({ type: "LOAD_PRODUCTS", payload: data.products });
         setHasMore(data.hasMore);
         setLoading(false);
       } catch (err) {
@@ -98,36 +104,42 @@ const Enterprise = () => {
 
     if (pageNumber > 0) {
       setLoading(true);
-      fetchMoreCompanies();
+      fetchMoreProducts();
     }
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    const onCompany = (data) => {
+    const onCompanyProducts = (data) => {
       if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_COMPANIES", payload: data.store });
+        dispatch({ type: "UPDATE_PRODUCTS", payload: data.product });
       }
 
       if (data.action === "delete") {
-        dispatch({ type: "DELETE_COMPANIES", payload: +data.companyId });
+        dispatch({ type: "DELETE_PRODUCTS", payload: +data.productId });
       }
     };
-    socket.on(`company-${user.companyId}-company`, onCompany);
+    socket.on(`company-${user.companyId}-product`, onCompanyProducts);
 
     return () => {
-      socket.off(`company-${user.companyId}-company`, onCompany);
+      socket.off(`company-${user.companyId}-product`, onCompanyProducts);
     };
   }, [socket, user.companyId]);
 
-  const handleOpenCompanyModal = () => {
-    setSelectedCompany(null);
-    setCompanyModalOpen(true);
+  const handleOpenCategoryModal = () => {
+    setSelectedProduct(null);
+    setProductModalOpen(true);
   };
 
-  const handleCloseCompanyModal = () => {
-    setSelectedCompany(null);
-    setCompanyModalOpen(false);
+  const handleCloseProductModal = () => {
+    setSelectedProduct(null);
+    setProductModalOpen(false);
   };
+
+  const handleCloseProductStoreModal = () => {
+    setSelectedProduct(null);
+    setProductStoreModalOpen(false);
+  };
+
 
   const handleSearch = (event) => {
     const newSearchParam = event.target.value.toLowerCase();
@@ -136,19 +148,24 @@ const Enterprise = () => {
     dispatch({ type: "RESET" });
   };
 
-  const handleEditCompany = (store) => {
-    setSelectedCompany(store);
-    setCompanyModalOpen(true);
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setProductModalOpen(true);
   };
 
-  const handleDeleteCompany = async (companyId) => {
+  const handleEditProductStore = product => {
+    setSelectedProduct(product);
+    setProductStoreModalOpen(true);
+  };
+
+  const handleDeleteProduct = async (productId) => {
     try {
-      await api.delete(`/companies/${companyId}`);
-      toast.success(i18n.t("companies.toasts.deleted"));
+      await api.delete(`/products/${productId}`);
+      toast.success(i18n.t("products.toasts.deleted"));
     } catch (err) {
       toastError(err);
     }
-    setDeletingCompany(null);
+    setDeletingProduct(null);
     setSearchParam("");
     setPageNumber(1);
   };
@@ -169,28 +186,34 @@ const Enterprise = () => {
     <MainContainer className={classes.mainContainer}>
       <ConfirmationModal
         title={
-          deletingCompany &&
-          `${i18n.t("companies.confirmationModal.deleteTitle")}`
+          deletingProduct &&
+          `${i18n.t("products.confirmationModal.deleteTitle")}`
         }
         open={confirmModalOpen}
         onClose={() => setConfirmModalOpen(false)}
-        onConfirm={() => handleDeleteCompany(deletingCompany.id)}
+        onConfirm={() => handleDeleteProduct(deletingProduct.id)}
       >
-        {i18n.t("companies.confirmationModal.deleteMessage")}
+        {i18n.t("products.confirmationModal.deleteMessage")}
       </ConfirmationModal>
-      <EnterpriseModal
-        open={companyModalOpen}
-        onClose={handleCloseCompanyModal}
+      <ProductModal
+        open={productModalOpen}
+        onClose={handleCloseProductModal}
         aria-labelledby="form-dialog-title"
-        companyId={selectedCompany && selectedCompany.id}
+        productId={selectedProduct && selectedProduct.id}
+      />
+       <ProductStoreModal
+        open={productStoreModalOpen}
+        onClose={handleCloseProductStoreModal}
+        productId={selectedProduct && selectedProduct.id}
+       
       />
       <MainHeader>
         <Title>
-          {i18n.t("companies.title")} ({companies.length})
+          {i18n.t("products.title")} ({products.length})
         </Title>
         <MainHeaderButtonsWrapper>
           <TextField
-            placeholder={i18n.t("companies.searchPlaceholder")}
+            placeholder={i18n.t("contacts.searchPlaceholder")}
             type="search"
             value={searchParam}
             onChange={handleSearch}
@@ -205,10 +228,9 @@ const Enterprise = () => {
           <Button
             variant="contained"
             color="primary"
-            disabled={true}
-            onClick={handleOpenCompanyModal}
+            onClick={handleOpenCategoryModal}
           >
-            {i18n.t("companies.buttons.add")}
+            {i18n.t("products.buttons.add")}
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
@@ -222,82 +244,101 @@ const Enterprise = () => {
             <TableRow>
               <TableCell padding="checkbox" />
               <TableCell align="center">
-                {i18n.t("companies.table.name")}
+                {i18n.t("products.table.ean")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("companies.table.phone")}
+                {i18n.t("products.table.code")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("companies.table.email")}
+                {i18n.t("products.table.name")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("companies.table.dueDate")}
+                {i18n.t("products.table.category")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("companies.table.actions")}
+                {i18n.t("products.table.isActive")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("products.table.actions")}
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            <>
-              {companies.map((company) => (
-                <TableRow key={company.id}>
+          <>
+              {products.map(product => (
+                <TableRow key={product.id}>
                   <TableCell style={{ paddingRight: 0 }}>
                     <Tooltip
                       title={
                         <img
-                          src={`${process.env.REACT_APP_BACKEND_URL}/public/company${company.id}/${company.mediaPath}`}
+                          src={`${process.env.REACT_APP_BACKEND_URL}/public/company${user.companyId}/${product.mediaPath}`}
                           alt="Produto"
                           style={{
                             width: "100%",
                             height: "100%",
                             objectFit: "cover",
                             borderRadius: 8,
-                            border: "1px solid #ddd",
+                            border: "1px solid #ddd"
                           }}
                         />
                       }
                       arrow
                     >
                       <Avatar
-                        src={`${process.env.REACT_APP_BACKEND_URL}/public/company${company.id}/${company.mediaPath}`}
+                        src={`${process.env.REACT_APP_BACKEND_URL}/public/company${user.companyId}/${product.mediaPath}`}
                         variant="rounded" // ou "circular", dependendo do estilo desejado
                         style={{
                           width: 60,
                           height: 60,
                           objectFit: "cover",
                           border: "1px solid #ddd",
-                          cursor: "pointer",
+                          cursor: "pointer"
                         }}
                       />
                     </Tooltip>
                   </TableCell>
-                  <TableCell align="center">{company.name}</TableCell>
-                  <TableCell align="center">{company.phone}</TableCell>
-                  <TableCell align="center">{company.email}</TableCell>
+                  <TableCell align="center">{product.ean}</TableCell>
+                  <TableCell align="center">{product.code}</TableCell>
+                  <TableCell align="center">{product.name}</TableCell>
+                  <TableCell align="center">{product.category.name}</TableCell>
                   <TableCell align="center">
-                    {moment(company.dueDate).format("DD/MM/YYYY")}
+                    {product.isActive ? (
+                      <div className={classes.customTableCell}>
+                        <CheckCircle style={{ color: green[500] }} />
+                      </div>
+                    ) : (
+                      <div className={classes.customTableCell}>
+                        <Cancel style={{ color: red[500] }} />
+                      </div>
+                    )}
                   </TableCell>
-
                   <TableCell align="center">
                     <IconButton
                       size="small"
-                      onClick={() => handleEditCompany(company)}
+                      onClick={() => handleEditProductStore(product)}
+                    >
+                      <AttachMoney />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEditProduct(product)}
                     >
                       <EditIcon />
                     </IconButton>
 
                     <IconButton
                       size="small"
-                      disabled
-                      
+                      onClick={e => {
+                        setConfirmModalOpen(true);
+                        setDeletingProduct(product);
+                      }}
                     >
                       <DeleteOutlineIcon />
                     </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton columns={6} />}
+              {loading && <TableRowSkeleton columns={7} />}
             </>
           </TableBody>
         </Table>
@@ -306,4 +347,4 @@ const Enterprise = () => {
   );
 };
 
-export default Enterprise;
+export default Products;
