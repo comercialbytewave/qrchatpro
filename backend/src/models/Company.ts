@@ -162,6 +162,19 @@ class Company extends Model<Company> {
     hooks: true
   })
   invoices: Invoices[];
+
+  @Column
+  mediaPath: string;
+
+  @Column
+  mediaName: string;
+
+  @Column({
+    type: DataType.STRING,
+    unique: true,
+    allowNull: true
+  })
+  token: string | null;
 }
 
 export default Company;

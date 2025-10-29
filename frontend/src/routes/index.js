@@ -21,6 +21,8 @@ import Helps from "../pages/Helps";
 import ContactLists from "../pages/ContactLists";
 import ContactListItems from "../pages/ContactListItems";
 import Companies from "../pages/Companies";
+import Enterprise from "../pages/Enterprise";
+
 import QuickMessages from "../pages/QuickMessages";
 import { AuthProvider } from "../context/Auth/AuthContext";
 import { TicketsContextProvider } from "../context/Tickets/TicketsContext";
@@ -47,6 +49,8 @@ import Files from "../pages/Files";
 import ToDoList from "../pages/ToDoList";
 import Kanban from "../pages/Kanban";
 import TagsKanban from "../pages/TagsKanban";
+import Stores from "../pages/Stores";
+import Categories from "../pages/Categories";
 const Routes = () => {
   const [showCampaigns, setShowCampaigns] = useState(false);
 
@@ -86,6 +90,9 @@ const Routes = () => {
                 <Route exact path="/reports" component={Reports} isPrivate />
                 <Route exact path="/queue-integration" component={QueueIntegration} isPrivate />
                 <Route exact path="/announcements" component={Annoucements} isPrivate />
+                <Route exact path="/enterprises" component={Enterprise} isPrivate />
+                <Route exact path="/stores" component={Stores} isPrivate />
+                <Route exact path="/categories" component={Categories} isPrivate />
                 <Route
                   exact
                   path="/phrase-lists"

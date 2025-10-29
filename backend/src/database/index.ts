@@ -52,6 +52,10 @@ import { FlowAudioModel } from "../models/FlowAudio";
 import { FlowCampaignModel } from "../models/FlowCampaign";
 import { FlowImgModel } from "../models/FlowImg";
 import { WebhookModel } from "../models/Webhook";
+import Product from "../models/Product";
+import Category from "../models/Category";
+import Store from "../models/Stores";
+import ProductStore from "../models/ProductStore";
 
 // eslint-disable-next-line
 const dbConfig = require("../config/database");
@@ -111,6 +115,10 @@ const models = [
   FlowAudioModel,
   FlowCampaignModel,
   FlowImgModel,
+  Product,
+  Category,
+  ProductStore,
+  Store,
   WebhookModel
 ];
 

@@ -33,6 +33,13 @@ const messages = {
       },
       companies: {
         title: "Cadastrar Empresa",
+        table: {
+          name: "Nome",
+          phone: "Telefone",
+          email: "E-mail",
+          dueDate: "Vencimento",
+          actions: "Ações"
+        },
         form: {
           name: "Nome da Empresa",
           plan: "Plano",
@@ -40,6 +47,14 @@ const messages = {
           submit: "Cadastrar",
           success: "Empresa criada com sucesso!",
         },
+        searchPlaceholder: "Pesquisar...",
+        confirmationModal: {
+          deleteTitle: "Excluir",
+          deleteMessage: "Você tem certeza? Essa ação não pode ser revertida!"
+        },
+        buttons: {
+          add: "Adicionar Empresa"
+        }
       },
       auth: {
         toasts: {
@@ -106,6 +121,68 @@ const messages = {
           neutral: "Neutros",
           detractors: "Detratores",
         },
+      },
+      products: {
+        title: "Produtos",
+        confirmationModal: {
+          deleteTitle: "Você tem certeza que quer excluir esta produto?",
+          deleteMessage: "Esta ação não pode ser revertida."
+        },
+        table: {
+          ean: "Ean",
+          name: "Nome",
+          code: "Código",
+          isActive: "Ativo",
+          category: "Categoria",
+          actions: "Ações"
+        },
+        buttons: {
+          add: "Nova Produto",
+          attach: "Upload de Imagem"
+        },
+        toasts: {
+          deleted: "Produto excluído com sucesso."
+        }
+      },
+      categories: {
+        title: "Cadastrar Categoria",
+        form: {
+          code: "Código",
+          name: "Nome",
+          submit: "Cadastrar",
+          success: "Categoria criada com sucesso!"
+        },
+        table: {
+          code: "Código",
+          name: "Nome",
+          actions: "Ações",
+          
+        },
+        buttons: {
+          add: "Adicionar Categoria",
+        },
+      },
+      productStores: {
+        title: "Preços",
+        confirmationModal: {
+          deleteTitle: "Você tem certeza que quer excluir esta preço?",
+          deleteMessage: "Esta ação não pode ser revertida."
+        },
+        table: {
+          productId: "Produto",
+          storeId: "Loja",
+          stock: "Estoque",
+          costPrice: "Custo",
+          sellingPrice: "Preço de Venda",
+          promotionPrice: "Preço Promocional",
+          actions: "Ações"
+        },
+        buttons: {
+          add: "Nova Preço"
+        },
+        toasts: {
+          deleted: "Preço excluído com sucesso."
+        }
       },
       reports: {
         title: "Relatório de Pesquisas Realizadas",
@@ -283,6 +360,22 @@ const messages = {
           reopen: "reabriu o ticket",
           redirect: "- redirecionado"
         },
+      },
+      categoryModal: {
+        form: {
+          code: "Código",
+          name: "Nome",          
+        },
+        success: "Categoria salvo com sucesso!",
+        title: {
+          add: "Adicionar Categoria",
+          edit: "Editar Categoria"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        }
       },
       whatsappModal: {
         title: {
@@ -476,6 +569,34 @@ const messages = {
       flowbuilderModal: {
         flowNotIdPhrase: "Fluxo padrão",
       },
+      storeModal: {
+        title: {
+          add: "Adicionar loja",
+          edit: "Editar loja"
+        },
+        form: {
+          document: "CNPJ",
+          name: "Nome",
+          fantasy: "Fantasia",
+          zipCode: "Cep",
+          address: "Endereço",
+          number: "Número",
+          complement: "Complemento",
+          neighborhood: "Bairro",
+          city: "Cidade",
+          state: "Estado",
+          latitude: "Latitude",
+          longitude: "Longitude",
+          isActive: "Ativo",
+          keyPix: "Chave Pix"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        },
+        success: "Loja salvo com sucesso."
+      },
       queueModal: {
         title: {
           queueData: "Dados da fila",
@@ -629,22 +750,22 @@ const messages = {
       },
       companyModal: {
         title: {
-          add: "Adicionar empresa",
-          edit: "Editar empresa",
+          edit: "Editar Company"
         },
         form: {
           name: "Nome",
+          phone: "Telefone",
           email: "Email",
-          passwordDefault: "Senha",
-          numberAttendants: "Usuários",
-          numberConections: "Conexões",
+          token: "Token",
+          dueDate: "Data de vencimento"
         },
         buttons: {
           okAdd: "Adicionar",
           okEdit: "Salvar",
           cancel: "Cancelar",
+          attach: "Anexar Logo",
         },
-        success: "Empresa salvo com sucesso.",
+        success: "Empresa salvo com sucesso."
       },
       scheduleModal: {
         title: {
@@ -873,6 +994,10 @@ const messages = {
           contacts: "Contatos",
           queues: "Filas & Chatbot",
           tags: "Tags",
+          stores: "Lojas",
+          retail: "Varejo",
+          products: "Produtos",
+          categories: "Categorias",
           administration: "Administração",
           companies: "Empresas",
           users: "Usuários",
@@ -1425,6 +1550,26 @@ const messages = {
           delete: "Excluir",
           save: "Salvar",
         },
+      },
+      stores: {
+        title: "Filiais/Lojas",
+        confirmationModal: {
+          deleteTitle: "Você tem certeza que quer excluir esta Loja?",
+          deleteMessage: "Esta ação não pode ser revertida."
+        },
+        table: {
+          document: "CNPJ",
+          name: "Nome",
+          fantasy: "Fantasia",
+          isActive: "Ativo",
+          actions: "Ações"
+        },
+        buttons: {
+          add: "Nova Loja"
+        },
+        toasts: {
+          deleted: "Loja excluído com sucesso."
+        }
       },
       schedules: {
         title: "Agendamentos",

@@ -6,6 +6,10 @@ import { Request, Response } from "express";
 import AppError from "../errors/AppError";
 import Company from "../models/Company";
 
+import { head } from "lodash";
+import fs from "fs";
+import path from "path";
+
 import ListCompaniesService from "../services/CompanyService/ListCompaniesService";
 import CreateCompanyService from "../services/CompanyService/CreateCompanyService";
 import UpdateCompanyService from "../services/CompanyService/UpdateCompanyService";
@@ -16,6 +20,8 @@ import FindAllCompaniesService from "../services/CompanyService/FindAllCompanies
 import ShowPlanCompanyService from "../services/CompanyService/ShowPlanCompanyService";
 import User from "../models/User";
 import ListCompaniesPlanService from "../services/CompanyService/ListCompaniesPlanService";
+import CompanyGenerationTokenService from "../services/CompaniesSettings/CompanyGenerationTokenService";
+
 
 interface TokenPayload {
   id: string;
@@ -44,6 +50,7 @@ type CompanyData = {
   recurrence?: string;
   document?: string;
   paymentMethod?: string;
+  token?: string;
 };
 
 type SchedulesData = {
@@ -265,4 +272,57 @@ export const indexPlan = async (req: Request, res: Response): Promise<Response> 
     return res.status(400).json({ error: "Você não possui permissão para acessar este recurso!" });
   }
 
+};
+
+export const CompanyGenerationToken = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const companyData: CompanyData = req.body;
+  const { id } = req.params;
+
+  const company = await CompanyGenerationTokenService({ id, ...companyData });
+
+  return res.status(200).json(company);
+};
+
+export const mediaUpload = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id } = req.params;
+  const files = req.files as Express.Multer.File[];
+  const file = head(files);
+
+  try {
+    const company = await Company.findByPk(id);
+    company.mediaPath = file.filename;
+    company.mediaName = file.originalname;
+    await company.save();
+    return res.send({ mensagem: "Mensagem enviada" });
+  } catch (err: any) {
+    throw new AppError(err.message);
+  }
+};
+
+export const deleteMedia = async (
+  req: Request,
+  res: Response
+): Promise<Response> => {
+  const { id } = req.params;
+
+  try {
+    const company = await Company.findByPk(id);
+    const filePath = path.resolve("public", company.mediaPath);
+    const fileExists = fs.existsSync(filePath);
+    if (fileExists) {
+      fs.unlinkSync(filePath);
+    }
+    company.mediaPath = null;
+    company.mediaName = null; 
+    await company.save();
+    return res.send({ mensagem: "Arquivo excluído" });
+  } catch (err: any) {
+    throw new AppError(err.message);
+  }
 };

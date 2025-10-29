@@ -46,6 +46,8 @@ import webHook from "./webHookRoutes";
 import flowBuilder from "./flowBuilderRoutes";
 import flowCampaignRoutes from "./flowCampaignRoutes";
 
+import storeRoutes from "./storeRoutes";
+import categoriesRoutes from "./categoryRoutes";
 
 const routes = Router();
 
@@ -97,5 +99,8 @@ routes.use(promptRoutes);
 routes.use(statisticsRoutes);
 routes.use(companySettingsRoutes);
 routes.use(scheduleMessageRoutes);
+
+routes.use(storeRoutes);
+routes.use(categoriesRoutes);
 
 export default routes;

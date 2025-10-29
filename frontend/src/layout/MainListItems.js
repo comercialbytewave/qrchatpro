@@ -36,15 +36,23 @@ import AnnouncementIcon from "@material-ui/icons/Announcement";
 import ForumIcon from "@material-ui/icons/Forum";
 import LocalAtmIcon from "@material-ui/icons/LocalAtm";
 import BusinessIcon from "@material-ui/icons/Business";
+import ShoppingBasket from "@material-ui/icons/ShoppingBasket";
+import Apartment from "@material-ui/icons/Apartment";
+import Memory from "@material-ui/icons/Memory";
+
 import {
   AllInclusive,
+  ArtTrack,
   AttachFile,
   Dashboard,
   Description,
   DeviceHubOutlined,
   GridOn,
   ListAlt,
+  Loyalty,
   PhonelinkSetup,
+  Storefront,
+  Style,
 } from "@material-ui/icons";
 
 import { WhatsAppsContext } from "../context/WhatsApp/WhatsAppsContext";
@@ -88,7 +96,10 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: "50%",
     height: 36,
     width: 36,
-    backgroundColor: theme.mode === "light" ? "rgba(120,120,120,0.1)" : "rgba(120,120,120,0.5)",
+    backgroundColor:
+      theme.mode === "light"
+        ? "rgba(120,120,120,0.1)"
+        : "rgba(120,120,120,0.5)",
     color: theme.mode === "light" ? "#666" : "#FFF",
     // color: theme.mode === "light" ? theme.palette.primary.main : "#FFF",
     "&:hover, &.active": {
@@ -109,7 +120,10 @@ function ListItemLink(props) {
   const isActive = activeMenu === to || location.pathname === to;
 
   const renderLink = React.useMemo(
-    () => React.forwardRef((itemProps, ref) => <RouterLink to={to} ref={ref} {...itemProps} />),
+    () =>
+      React.forwardRef((itemProps, ref) => (
+        <RouterLink to={to} ref={ref} {...itemProps} />
+      )),
     [to]
   );
 
@@ -129,15 +143,38 @@ function ListItemLink(props) {
           {icon ? (
             <ListItemIcon>
               {showBadge ? (
-                <Badge badgeContent="!" color="error" overlap="circular" className={classes.badge}>
-                  <Avatar className={`${classes.iconHoverActive} ${isActive ? "active" : ""}`}>{icon}</Avatar>
+                <Badge
+                  badgeContent="!"
+                  color="error"
+                  overlap="circular"
+                  className={classes.badge}
+                >
+                  <Avatar
+                    className={`${classes.iconHoverActive} ${
+                      isActive ? "active" : ""
+                    }`}
+                  >
+                    {icon}
+                  </Avatar>
                 </Badge>
               ) : (
-                <Avatar className={`${classes.iconHoverActive} ${isActive ? "active" : ""}`}>{icon}</Avatar>
+                <Avatar
+                  className={`${classes.iconHoverActive} ${
+                    isActive ? "active" : ""
+                  }`}
+                >
+                  {icon}
+                </Avatar>
               )}
             </ListItemIcon>
           ) : null}
-          <ListItemText primary={<Typography className={classes.listItemText}>{primary}</Typography>} />
+          <ListItemText
+            primary={
+              <Typography className={classes.listItemText}>
+                {primary}
+              </Typography>
+            }
+          />
         </ListItem>
       </li>
     </ConditionalTooltip>
@@ -212,10 +249,15 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [openCampaignSubmenu, setOpenCampaignSubmenu] = useState(false);
   const [openFlowSubmenu, setOpenFlowSubmenu] = useState(false);
   const [openDashboardSubmenu, setOpenDashboardSubmenu] = useState(false);
+  const [openRetailSubmenu, setOpenRetailSubmenu] = useState(false);
+  const [openIntegrationSubmenu, setOpenIntegrationSubmenu] = useState(false);
+  const [openProductSubmenu, setOpenProductSubmenu] = useState(false);
+
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [showKanban, setShowKanban] = useState(false);
   const [showOpenAi, setShowOpenAi] = useState(false);
   const [showIntegrations, setShowIntegrations] = useState(false);
+  const [showProducts, setShowProducts] = useState(false);
 
   // novas features
   const [showSchedules, setShowSchedules] = useState(false);
@@ -229,12 +271,15 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [version, setVersion] = useState(false);
   const [managementHover, setManagementHover] = useState(false);
   const [campaignHover, setCampaignHover] = useState(false);
-  const [flowHover, setFlowHover] = useState(false)
-  const { list } = useHelps();  // INSERIR
+  const [flowHover, setFlowHover] = useState(false);
+  const [retailHover, setRetailHover] = useState(false);
+  const [integrationHover, setIntegrationHover] = useState(false);
+  const [productHover, setProductHover] = useState(false);
+  const { list } = useHelps(); // INSERIR
   const [hasHelps, setHasHelps] = useState(false);
 
-
-  useEffect(() => {   // INSERIR ESSE EFFECT INTEIRO
+  useEffect(() => {
+    // INSERIR ESSE EFFECT INTEIRO
     async function checkHelps() {
       const helps = await list();
       setHasHelps(helps.length > 0);
@@ -243,16 +288,28 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   }, []);
 
   const isManagementActive =
-    location.pathname === "/" || location.pathname.startsWith("/reports") || location.pathname.startsWith("/moments");
+    location.pathname === "/" ||
+    location.pathname.startsWith("/reports") ||
+    location.pathname.startsWith("/moments");
 
   const isCampaignRouteActive =
     location.pathname === "/campaigns" ||
     location.pathname.startsWith("/contact-lists") ||
     location.pathname.startsWith("/campaigns-config");
 
-  const isFlowbuilderRouteActive = 
-    location.pathname.startsWith("/phrase-lists")
-    location.pathname.startsWith("/flowbuilders")
+  const isFlowbuilderRouteActive =
+    location.pathname.startsWith("/phrase-lists");
+  location.pathname.startsWith("/flowbuilders");
+
+  const isRatailRouteActive = location.pathname.startsWith("/phrase-lists");
+  location.pathname.startsWith("/stores");
+
+  const isIntegrationRouteActive =
+    location.pathname.startsWith("/phrase-lists");
+  location.pathname.startsWith("/prompts");
+
+  const isProductRouteActive = location.pathname.startsWith("/phrase-lists");
+  location.pathname.startsWith("/categories");
 
   useEffect(() => {
     if (location.pathname.startsWith("/tickets")) {
@@ -387,14 +444,18 @@ const MainListItems = ({ collapsed, drawerClose }) => {
     <div onClick={drawerClose}>
       <Can
         role={
-          (user.profile === "user" && user.showDashboard === "enabled") || user.allowRealTime === "enabled"
+          (user.profile === "user" && user.showDashboard === "enabled") ||
+          user.allowRealTime === "enabled"
             ? "admin"
             : user.profile
         }
         perform={"drawer-admin-items:view"}
         yes={() => (
           <>
-            <Tooltip title={collapsed ? i18n.t("mainDrawer.listItems.management") : ""} placement="right">
+            <Tooltip
+              title={collapsed ? i18n.t("mainDrawer.listItems.management") : ""}
+              placement="right"
+            >
               <ListItem
                 dense
                 button
@@ -404,7 +465,9 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               >
                 <ListItemIcon>
                   <Avatar
-                    className={`${classes.iconHoverActive} ${isManagementActive || managementHover ? "active" : ""}`}
+                    className={`${classes.iconHoverActive} ${
+                      isManagementActive || managementHover ? "active" : ""
+                    }`}
                   >
                     <Dashboard />
                   </Avatar>
@@ -424,11 +487,18 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               timeout="auto"
               unmountOnExit
               style={{
-                backgroundColor: theme.mode === "light" ? "rgba(120,120,120,0.1)" : "rgba(120,120,120,0.5)",
+                backgroundColor:
+                  theme.mode === "light"
+                    ? "rgba(120,120,120,0.1)"
+                    : "rgba(120,120,120,0.5)",
               }}
             >
               <Can
-                role={user.profile === "user" && user.showDashboard === "enabled" ? "admin" : user.profile}
+                role={
+                  user.profile === "user" && user.showDashboard === "enabled"
+                    ? "admin"
+                    : user.profile
+                }
                 perform={"drawer-admin-items:view"}
                 yes={() => (
                   <>
@@ -450,7 +520,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                 )}
               />
               <Can
-                role={user.profile === "user" && user.allowRealTime === "enabled" ? "admin" : user.profile}
+                role={
+                  user.profile === "user" && user.allowRealTime === "enabled"
+                    ? "admin"
+                    : user.profile
+                }
                 perform={"drawer-admin-items:view"}
                 yes={() => (
                   <ListItemLink
@@ -544,19 +618,32 @@ const MainListItems = ({ collapsed, drawerClose }) => {
         />
       )}
       <Can
-        role={user.profile === "user" && user.allowConnections === "enabled" ? "admin" : user.profile}
+        role={
+          user.profile === "user" && user.allowConnections === "enabled"
+            ? "admin"
+            : user.profile
+        }
         perform="dashboard:view"
         yes={() => (
           <>
             <Divider />
-            <ListSubheader inset>{i18n.t("mainDrawer.listItems.administration")}</ListSubheader>
+            <ListSubheader inset>
+              {i18n.t("mainDrawer.listItems.administration")}
+            </ListSubheader>
             {showCampaigns && (
               <Can
                 role={user.profile}
                 perform="dashboard:view"
                 yes={() => (
                   <>
-                    <Tooltip title={collapsed ? i18n.t("mainDrawer.listItems.campaigns") : ""} placement="right">
+                    <Tooltip
+                      title={
+                        collapsed
+                          ? i18n.t("mainDrawer.listItems.campaigns")
+                          : ""
+                      }
+                      placement="right"
+                    >
                       <ListItem
                         dense
                         button
@@ -566,8 +653,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                       >
                         <ListItemIcon>
                           <Avatar
-                            className={`${classes.iconHoverActive} ${isCampaignRouteActive || campaignHover ? "active" : ""
-                              }`}
+                            className={`${classes.iconHoverActive} ${
+                              isCampaignRouteActive || campaignHover
+                                ? "active"
+                                : ""
+                            }`}
                           >
                             <EventAvailableIcon />
                           </Avatar>
@@ -579,7 +669,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                             </Typography>
                           }
                         />
-                        {openCampaignSubmenu ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        {openCampaignSubmenu ? (
+                          <ExpandLessIcon />
+                        ) : (
+                          <ExpandMoreIcon />
+                        )}
                       </ListItem>
                     </Tooltip>
                     <Collapse
@@ -587,7 +681,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                       timeout="auto"
                       unmountOnExit
                       style={{
-                        backgroundColor: theme.mode === "light" ? "rgba(120,120,120,0.1)" : "rgba(120,120,120,0.5)",
+                        backgroundColor:
+                          theme.mode === "light"
+                            ? "rgba(120,120,120,0.1)"
+                            : "rgba(120,120,120,0.5)",
                       }}
                     >
                       <List dense component="div" disablePadding>
@@ -622,7 +719,12 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               perform="dashboard:view"
               yes={() => (
                 <>
-                  <Tooltip title={collapsed ? i18n.t("mainDrawer.listItems.campaigns") : ""} placement="right">
+                  <Tooltip
+                    title={
+                      collapsed ? i18n.t("mainDrawer.listItems.campaigns") : ""
+                    }
+                    placement="right"
+                  >
                     <ListItem
                       dense
                       button
@@ -632,8 +734,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                     >
                       <ListItemIcon>
                         <Avatar
-                          className={`${classes.iconHoverActive} ${isFlowbuilderRouteActive || flowHover ? "active" : ""
-                            }`}
+                          className={`${classes.iconHoverActive} ${
+                            isFlowbuilderRouteActive || flowHover
+                              ? "active"
+                              : ""
+                          }`}
                         >
                           <Webhook />
                         </Avatar>
@@ -645,7 +750,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                           </Typography>
                         }
                       />
-                      {openFlowSubmenu ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      {openFlowSubmenu ? (
+                        <ExpandLessIcon />
+                      ) : (
+                        <ExpandMoreIcon />
+                      )}
                     </ListItem>
                   </Tooltip>
 
@@ -654,7 +763,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                     timeout="auto"
                     unmountOnExit
                     style={{
-                      backgroundColor: theme.mode === "light" ? "rgba(120,120,120,0.1)" : "rgba(120,120,120,0.5)",
+                      backgroundColor:
+                        theme.mode === "light"
+                          ? "rgba(120,120,120,0.1)"
+                          : "rgba(120,120,120,0.5)",
                     }}
                   >
                     <List dense component="div" disablePadding>
@@ -667,7 +779,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
 
                       <ListItemLink
                         to="/flowbuilders"
-                        primary={'Fluxo de conversa'}
+                        primary={"Fluxo de conversa"}
                         icon={<ShapeLine />}
                       />
                     </List>
@@ -676,6 +788,277 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               )}
             />
 
+            {/* VAREJO */}
+            <Can
+              role={user.profile}
+              perform="dashboard:view"
+              yes={() => (
+                <>
+                  <Tooltip
+                    title={
+                      collapsed ? i18n.t("mainDrawer.listItems.retail") : ""
+                    }
+                    placement="right"
+                  >
+                    <ListItem
+                      dense
+                      button
+                      onClick={() => setOpenRetailSubmenu((prev) => !prev)}
+                      onMouseEnter={() => setRetailHover(true)}
+                      onMouseLeave={() => setRetailHover(false)}
+                    >
+                      <ListItemIcon>
+                        <Avatar
+                          className={`${classes.iconHoverActive} ${
+                            isRatailRouteActive || retailHover ? "active" : ""
+                          }`}
+                        >
+                          <ShoppingBasket />
+                        </Avatar>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Typography className={classes.listItemText}>
+                            {i18n.t("Varejo")}
+                          </Typography>
+                        }
+                      />
+                      {openRetailSubmenu ? (
+                        <ExpandLessIcon />
+                      ) : (
+                        <ExpandMoreIcon />
+                      )}
+                    </ListItem>
+                  </Tooltip>
+
+                  <Collapse
+                    in={openRetailSubmenu}
+                    timeout="auto"
+                    unmountOnExit
+                    style={{
+                      backgroundColor:
+                        theme.mode === "light"
+                          ? "rgba(120,120,120,0.1)"
+                          : "rgba(120,120,120,0.5)",
+                    }}
+                  >
+                    <List dense component="div" disablePadding>
+                      <ListItemLink
+                        to="/enterprises"
+                        primary={"Matriz"}
+                        icon={<Apartment />}
+                      />
+                      <ListItemLink
+                        to="/stores"
+                        primary={i18n.t("mainDrawer.listItems.stores")}
+                        icon={<Storefront />}
+                      />
+                      {/* VAREJO */}
+                      {!showProducts && (
+                        <Can
+                          role={user.profile}
+                          perform="dashboard:view"
+                          yes={() => (
+                            <>
+                              <Tooltip
+                                title={
+                                  collapsed
+                                    ? i18n.t("mainDrawer.listItems.products")
+                                    : ""
+                                }
+                                placement="right"
+                              >
+                                <ListItem
+                                  dense
+                                  button
+                                  onClick={() =>
+                                    setOpenProductSubmenu((prev) => !prev)
+                                  }
+                                  onMouseEnter={() => setProductHover(true)}
+                                  onMouseLeave={() => setProductHover(false)}
+                                >
+                                  <ListItemIcon>
+                                    <Avatar
+                                      className={`${classes.iconHoverActive} ${
+                                        isProductRouteActive || productHover
+                                          ? "active"
+                                          : ""
+                                      }`}
+                                    >
+                                      <Loyalty />
+                                    </Avatar>
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={
+                                      <Typography
+                                        className={classes.listItemText}
+                                      >
+                                        {i18n.t(
+                                          "mainDrawer.listItems.products"
+                                        )}
+                                      </Typography>
+                                    }
+                                  />
+                                  {openProductSubmenu ? (
+                                    <ExpandLessIcon />
+                                  ) : (
+                                    <ExpandMoreIcon />
+                                  )}
+                                </ListItem>
+                              </Tooltip>
+                              <Collapse
+                                in={openProductSubmenu}
+                                timeout="auto"
+                                unmountOnExit
+                                style={{
+                                  backgroundColor:
+                                    theme.mode === "light"
+                                      ? "rgba(120,120,120,0.1)"
+                                      : "rgba(120,120,120,0.5)",
+                                }}
+                              >
+                                <List dense component="div" disablePadding>
+                                  <ListItemLink
+                                    to="/categories"
+                                    primary={i18n.t("mainDrawer.listItems.categories")}
+                                    icon={<Style />}
+                                    tooltip={collapsed}
+                                  />
+                                  <ListItemLink
+                                    to="/products"
+                                    primary={i18n.t(
+                                      "mainDrawer.listItems.products"
+                                    )}
+                                    icon={<ArtTrack />}
+                                    tooltip={collapsed}
+                                  />
+                                 
+                                </List>
+                              </Collapse>
+                            </>
+                          )}
+                        />
+                      )}
+                    </List>
+                  </Collapse>
+                </>
+              )}
+            />
+
+            {/* INTEGRAÇÕES */}
+            <Can
+              role={user.profile}
+              perform="dashboard:view"
+              yes={() => (
+                <>
+                  <Tooltip
+                    title={
+                      collapsed
+                        ? i18n.t("mainDrawer.listItems.integrations")
+                        : ""
+                    }
+                    placement="right"
+                  >
+                    <ListItem
+                      dense
+                      button
+                      onClick={() => setOpenIntegrationSubmenu((prev) => !prev)}
+                      onMouseEnter={() => setIntegrationHover(true)}
+                      onMouseLeave={() => setIntegrationHover(false)}
+                    >
+                      <ListItemIcon>
+                        <Avatar
+                          className={`${classes.iconHoverActive} ${
+                            isIntegrationRouteActive || integrationHover
+                              ? "active"
+                              : ""
+                          }`}
+                        >
+                          <Memory />
+                        </Avatar>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Typography className={classes.listItemText}>
+                            {i18n.t("Integrações")}
+                          </Typography>
+                        }
+                      />
+                      {openIntegrationSubmenu ? (
+                        <ExpandLessIcon />
+                      ) : (
+                        <ExpandMoreIcon />
+                      )}
+                    </ListItem>
+                  </Tooltip>
+
+                  <Collapse
+                    in={openIntegrationSubmenu}
+                    timeout="auto"
+                    unmountOnExit
+                    style={{
+                      backgroundColor:
+                        theme.mode === "light"
+                          ? "rgba(120,120,120,0.1)"
+                          : "rgba(120,120,120,0.5)",
+                    }}
+                  >
+                    <List dense component="div" disablePadding>
+                      {showOpenAi && (
+                        <Can
+                          role={user.profile}
+                          perform="dashboard:view"
+                          yes={() => (
+                            <ListItemLink
+                              to="/prompts"
+                              primary={i18n.t("mainDrawer.listItems.prompts")}
+                              icon={<AllInclusive />}
+                              tooltip={collapsed}
+                            />
+                          )}
+                        />
+                      )}
+
+                      {showIntegrations && (
+                        <Can
+                          role={user.profile}
+                          perform="dashboard:view"
+                          yes={() => (
+                            <ListItemLink
+                              to="/queue-integration"
+                              primary={i18n.t(
+                                "mainDrawer.listItems.queueIntegration"
+                              )}
+                              icon={<DeviceHubOutlined />}
+                              tooltip={collapsed}
+                            />
+                          )}
+                        />
+                      )}
+
+                      {showExternalApi && (
+                        <>
+                          <Can
+                            role={user.profile}
+                            perform="dashboard:view"
+                            yes={() => (
+                              <ListItemLink
+                                to="/messages-api"
+                                primary={i18n.t(
+                                  "mainDrawer.listItems.messagesAPI"
+                                )}
+                                icon={<CodeRoundedIcon />}
+                                tooltip={collapsed}
+                              />
+                            )}
+                          />
+                        </>
+                      )}
+                    </List>
+                  </Collapse>
+                </>
+              )}
+            />
 
             {user.super && (
               <ListItemLink
@@ -686,22 +1069,6 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               />
             )}
 
-            {showExternalApi && (
-              <>
-                <Can
-                  role={user.profile}
-                  perform="dashboard:view"
-                  yes={() => (
-                    <ListItemLink
-                      to="/messages-api"
-                      primary={i18n.t("mainDrawer.listItems.messagesAPI")}
-                      icon={<CodeRoundedIcon />}
-                      tooltip={collapsed}
-                    />
-                  )}
-                />
-              </>
-            )}
             <Can
               role={user.profile}
               perform="dashboard:view"
@@ -727,37 +1094,12 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               )}
             />
 
-            {showOpenAi && (
-              <Can
-                role={user.profile}
-                perform="dashboard:view"
-                yes={() => (
-                  <ListItemLink
-                    to="/prompts"
-                    primary={i18n.t("mainDrawer.listItems.prompts")}
-                    icon={<AllInclusive />}
-                    tooltip={collapsed}
-                  />
-                )}
-              />
-            )}
-
-            {showIntegrations && (
-              <Can
-                role={user.profile}
-                perform="dashboard:view"
-                yes={() => (
-                  <ListItemLink
-                    to="/queue-integration"
-                    primary={i18n.t("mainDrawer.listItems.queueIntegration")}
-                    icon={<DeviceHubOutlined />}
-                    tooltip={collapsed}
-                  />
-                )}
-              />
-            )}
             <Can
-              role={user.profile === "user" && user.allowConnections === "enabled" ? "admin" : user.profile}
+              role={
+                user.profile === "user" && user.allowConnections === "enabled"
+                  ? "admin"
+                  : user.profile
+              }
               perform={"drawer-admin-items:view"}
               yes={() => (
                 <ListItemLink
@@ -827,9 +1169,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                 tooltip={collapsed}
               />
             )}
-
           </>
-
         )}
       />
       {!collapsed && (
