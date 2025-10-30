@@ -25,6 +25,7 @@ interface Request {
   companyId: number;
   extraInfo?: ExtraInfo[];
   remoteJid?: string;
+  customerId?: number;
   wallets?: null | number[] | string[];
 }
 
@@ -35,6 +36,7 @@ const CreateContactService = async ({
   acceptAudioMessage,
   active,
   companyId,
+  customerId,
   extraInfo = [],
   remoteJid = "",
   wallets
@@ -65,6 +67,7 @@ const CreateContactService = async ({
       active,
       extraInfo,
       companyId,
+      customerId,
       remoteJid
     },
     {

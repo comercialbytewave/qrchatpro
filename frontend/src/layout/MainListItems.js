@@ -41,6 +41,8 @@ import Apartment from "@material-ui/icons/Apartment";
 import Memory from "@material-ui/icons/Memory";
 
 import {
+  AccountBalanceOutlined,
+  AccountBalanceWalletOutlined,
   AllInclusive,
   ArtTrack,
   AttachFile,
@@ -54,7 +56,9 @@ import {
   GridOn,
   ListAlt,
   Loyalty,
+  PersonAddOutlined,
   PhonelinkSetup,
+  PortraitOutlined,
   Storefront,
   Style,
 } from "@material-ui/icons";
@@ -257,6 +261,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [openIntegrationSubmenu, setOpenIntegrationSubmenu] = useState(false);
   const [openProductSubmenu, setOpenProductSubmenu] = useState(false);
   const [openBudgetSubmenu, setOpenBudgetSubmenu] = useState(false);
+  const [openCustomerSubmenu, setOpenCustomerSubmenu] = useState(false);
 
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [showKanban, setShowKanban] = useState(false);
@@ -264,7 +269,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [showIntegrations, setShowIntegrations] = useState(false);
   const [showProducts, setShowProducts] = useState(false);
   const [showBudgets, setShowBudgets] = useState(false);
-  
+  const [showCustomers, setShowCustomers] = useState(false);
   // novas features
   const [showSchedules, setShowSchedules] = useState(false);
   const [showInternalChat, setShowInternalChat] = useState(false);
@@ -282,6 +287,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [integrationHover, setIntegrationHover] = useState(false);
   const [productHover, setProductHover] = useState(false);
   const [budgetHover, setBudgetHover] = useState(false);
+  const [customerHover, setCustomerHover] = useState(false);
 
   const { list } = useHelps(); // INSERIR
   const [hasHelps, setHasHelps] = useState(false);
@@ -318,6 +324,9 @@ const MainListItems = ({ collapsed, drawerClose }) => {
 
   const isProductRouteActive = location.pathname.startsWith("/phrase-lists");
   location.pathname.startsWith("/categories");
+
+  const isCustomerRouteActive = location.pathname.startsWith("/phrase-lists");
+  location.pathname.startsWith("/portifolios");
 
   const isBudgetRouteActive = location.pathname.startsWith("/phrase-lists");
   location.pathname.startsWith("/categories");
@@ -724,81 +733,6 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               />
             )}
 
-            {/* FLOWBUILDER */}
-            <Can
-              role={user.profile}
-              perform="dashboard:view"
-              yes={() => (
-                <>
-                  <Tooltip
-                    title={
-                      collapsed ? i18n.t("mainDrawer.listItems.campaigns") : ""
-                    }
-                    placement="right"
-                  >
-                    <ListItem
-                      dense
-                      button
-                      onClick={() => setOpenFlowSubmenu((prev) => !prev)}
-                      onMouseEnter={() => setFlowHover(true)}
-                      onMouseLeave={() => setFlowHover(false)}
-                    >
-                      <ListItemIcon>
-                        <Avatar
-                          className={`${classes.iconHoverActive} ${
-                            isFlowbuilderRouteActive || flowHover
-                              ? "active"
-                              : ""
-                          }`}
-                        >
-                          <Webhook />
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Typography className={classes.listItemText}>
-                            {i18n.t("Flowbuilder")}
-                          </Typography>
-                        }
-                      />
-                      {openFlowSubmenu ? (
-                        <ExpandLessIcon />
-                      ) : (
-                        <ExpandMoreIcon />
-                      )}
-                    </ListItem>
-                  </Tooltip>
-
-                  <Collapse
-                    in={openFlowSubmenu}
-                    timeout="auto"
-                    unmountOnExit
-                    style={{
-                      backgroundColor:
-                        theme.mode === "light"
-                          ? "rgba(120,120,120,0.1)"
-                          : "rgba(120,120,120,0.5)",
-                    }}
-                  >
-                    <List dense component="div" disablePadding>
-                      <ListItemLink
-                        to="/phrase-lists"
-                        primary={"Fluxo de Campanha"}
-                        icon={<EventAvailableIcon />}
-                        tooltip={collapsed}
-                      />
-
-                      <ListItemLink
-                        to="/flowbuilders"
-                        primary={"Fluxo de conversa"}
-                        icon={<ShapeLine />}
-                      />
-                    </List>
-                  </Collapse>
-                </>
-              )}
-            />
-
             {/* VAREJO */}
             <Can
               role={user.profile}
@@ -865,6 +799,92 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                         icon={<Storefront />}
                       />
                       {/* VAREJO */}
+                      {!showCustomers && (
+                        <Can
+                          role={user.profile}
+                          perform="dashboard:view"
+                          yes={() => (
+                            <>
+                              <Tooltip
+                                title={
+                                  collapsed
+                                    ? i18n.t("mainDrawer.listItems.products")
+                                    : ""
+                                }
+                                placement="right"
+                              >
+                                <ListItem
+                                  dense
+                                  button
+                                  onClick={() =>
+                                    setOpenCustomerSubmenu((prev) => !prev)
+                                  }
+                                  onMouseEnter={() => setCustomerHover(true)}
+                                  onMouseLeave={() => setCustomerHover(false)}
+                                >
+                                  <ListItemIcon>
+                                    <Avatar
+                                      className={`${classes.iconHoverActive} ${
+                                        isCustomerRouteActive || customerHover
+                                          ? "active"
+                                          : ""
+                                      }`}
+                                    >
+                                      <PortraitOutlined />
+                                    </Avatar>
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={
+                                      <Typography
+                                        className={classes.listItemText}
+                                      >
+                                        {i18n.t(
+                                          "mainDrawer.listItems.customers"
+                                        )}
+                                      </Typography>
+                                    }
+                                  />
+                                  {openCustomerSubmenu ? (
+                                    <ExpandLessIcon />
+                                  ) : (
+                                    <ExpandMoreIcon />
+                                  )}
+                                </ListItem>
+                              </Tooltip>
+                              <Collapse
+                                in={openCustomerSubmenu}
+                                timeout="auto"
+                                unmountOnExit
+                                style={{
+                                  backgroundColor:
+                                    theme.mode === "light"
+                                      ? "rgba(120,120,120,0.1)"
+                                      : "rgba(120,120,120,0.5)",
+                                }}
+                              >
+                                <List dense component="div" disablePadding>
+                                  <ListItemLink
+                                    to="/customers"
+                                    primary={i18n.t(
+                                      "mainDrawer.listItems.customers"
+                                    )}
+                                    icon={<PersonAddOutlined />}
+                                    tooltip={collapsed}
+                                  />
+                                  <ListItemLink
+                                    to="/portifolios"
+                                    primary={i18n.t(
+                                      "mainDrawer.listItems.portifolios"
+                                    )}
+                                    icon={<AccountBalanceWalletOutlined />}
+                                    tooltip={collapsed}
+                                  />
+                                </List>
+                              </Collapse>
+                            </>
+                          )}
+                        />
+                      )}
                       {!showProducts && (
                         <Can
                           role={user.profile}
@@ -931,7 +951,9 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                 <List dense component="div" disablePadding>
                                   <ListItemLink
                                     to="/categories"
-                                    primary={i18n.t("mainDrawer.listItems.categories")}
+                                    primary={i18n.t(
+                                      "mainDrawer.listItems.categories"
+                                    )}
                                     icon={<Style />}
                                     tooltip={collapsed}
                                   />
@@ -943,7 +965,6 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                     icon={<ArtTrack />}
                                     tooltip={collapsed}
                                   />
-                                 
                                 </List>
                               </Collapse>
                             </>
@@ -981,10 +1002,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                           : ""
                                       }`}
                                     >
-                                      {
-                                         openBudgetSubmenu ?
-                                          <FolderOutlined /> : <FolderOpenOutlined />
-                                      }
+                                      {openBudgetSubmenu ? (
+                                        <FolderOutlined />
+                                      ) : (
+                                        <FolderOpenOutlined />
+                                      )}
                                     </Avatar>
                                   </ListItemIcon>
                                   <ListItemText
@@ -1017,12 +1039,12 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                 <List dense component="div" disablePadding>
                                   <ListItemLink
                                     to="/categories"
-                                    primary={i18n.t("mainDrawer.listItems.paymentMethods")}
+                                    primary={i18n.t(
+                                      "mainDrawer.listItems.paymentMethods"
+                                    )}
                                     icon={<LocalAtmIcon />}
                                     tooltip={collapsed}
                                   />
-                                  
-                                 
                                 </List>
                               </Collapse>
                             </>
@@ -1144,6 +1166,86 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                           />
                         </>
                       )}
+                      {/* FLOWBUILDER */}
+                      <Can
+                        role={user.profile}
+                        perform="dashboard:view"
+                        yes={() => (
+                          <>
+                            <Tooltip
+                              title={
+                                collapsed
+                                  ? i18n.t("mainDrawer.listItems.campaigns")
+                                  : ""
+                              }
+                              placement="right"
+                            >
+                              <ListItem
+                                dense
+                                button
+                                onClick={() =>
+                                  setOpenFlowSubmenu((prev) => !prev)
+                                }
+                                onMouseEnter={() => setFlowHover(true)}
+                                onMouseLeave={() => setFlowHover(false)}
+                              >
+                                <ListItemIcon>
+                                  <Avatar
+                                    className={`${classes.iconHoverActive} ${
+                                      isFlowbuilderRouteActive || flowHover
+                                        ? "active"
+                                        : ""
+                                    }`}
+                                  >
+                                    <Webhook />
+                                  </Avatar>
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={
+                                    <Typography
+                                      className={classes.listItemText}
+                                    >
+                                      {i18n.t("Flowbuilder")}
+                                    </Typography>
+                                  }
+                                />
+                                {openFlowSubmenu ? (
+                                  <ExpandLessIcon />
+                                ) : (
+                                  <ExpandMoreIcon />
+                                )}
+                              </ListItem>
+                            </Tooltip>
+
+                            <Collapse
+                              in={openFlowSubmenu}
+                              timeout="auto"
+                              unmountOnExit
+                              style={{
+                                backgroundColor:
+                                  theme.mode === "light"
+                                    ? "rgba(120,120,120,0.1)"
+                                    : "rgba(120,120,120,0.5)",
+                              }}
+                            >
+                              <List dense component="div" disablePadding>
+                                <ListItemLink
+                                  to="/phrase-lists"
+                                  primary={"Fluxo de Campanha"}
+                                  icon={<EventAvailableIcon />}
+                                  tooltip={collapsed}
+                                />
+
+                                <ListItemLink
+                                  to="/flowbuilders"
+                                  primary={"Fluxo de conversa"}
+                                  icon={<ShapeLine />}
+                                />
+                              </List>
+                            </Collapse>
+                          </>
+                        )}
+                      />
                     </List>
                   </Collapse>
                 </>

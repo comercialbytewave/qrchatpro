@@ -52,6 +52,7 @@ class Product extends Model<Product> {
 
   @BelongsTo(() => Category)
   category: Category;
+  
 
   @Column
   mediaPath: string;

@@ -184,6 +184,26 @@ const messages = {
           deleted: "Preço excluído com sucesso."
         }
       },
+      portifolios: {
+        title: "Carteira de Clientes",
+        table: {
+          id: "ID",
+          name: "Nome",
+          userId: "Vendedor",
+          actions: "Ações"
+        },
+        buttons: {
+          add: "Adicionar Carteira"
+        },
+        toasts: {
+          deleted: "Contato excluído com sucesso!",
+        },
+        confirmationModal: {
+          deleteTitle: "Excluir",
+          deleteMessage:
+            "Você tem certeza? Essa ação não pode ser revertida! Os atendimentos dessa fila continuarão existindo, mas não terão mais nenhuma fila atribuída."
+        }
+      },
       reports: {
         title: "Relatório de Pesquisas Realizadas",
         operator: "Operador",
@@ -360,6 +380,71 @@ const messages = {
           reopen: "reabriu o ticket",
           redirect: "- redirecionado"
         },
+      },
+      customerModal: {
+        title: {
+          add: "Adicionar cliente",
+          edit: "Editar cliente",
+          
+        },
+        form: {
+          document: "Cpf/Cnpj",
+          name: "Nome",
+          email: "E-mail",
+          birthday: "Aniversário",
+          portfolioId: "Carteira",
+          customerDefault: "Não Identificado"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar",
+          address: "Adicionar Endereço",
+          customer: "Vincular cliente"
+        },
+        success: "Carteira salvo com sucesso."
+      },
+      customerAddressModal: {
+        title: {
+          add: "Adicionar endereço",
+          edit: "Editar endereço"
+        },
+        form: {
+          mainInfo: "Dados do contato",
+          name: "Nome do Endereço",
+          zipCode: "Cep",
+          address: "Endereço",
+          number: "Número",
+          complement: "Complemento",
+          neighborhood: "Bairro",
+          city: "Cidade",
+          state: "Estado",
+          isActive: "Principal?",
+          latitude: "Latitude",
+          longitude: "Longitude"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        },
+        success: "Enderço salvo com sucesso."
+      },
+      portifolioModal: {
+        form: {
+          name: "Nome",          
+          userId: "Vendedor",          
+        },
+        success: "Portifilio salvo com sucesso!",
+        title: {
+          add: "Adicionar Portifilio",
+          edit: "Editar Portifilio"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        }
       },
       categoryModal: {
         form: {
@@ -1036,6 +1121,8 @@ const messages = {
           tags: "Tags",
           stores: "Lojas",
           retail: "Varejo",
+          customers: "Clientes",
+          portifolios: "Carteiras",
           products: "Produtos",
           categories: "Categorias",
           administration: "Administração",
@@ -1054,7 +1141,7 @@ const messages = {
           queueIntegration: "Integrações",
           version: "Versão",
           kanban: "Kanban",
-          prompts: "Talk.Ai",
+          prompts: "OpenIA",
           allConnections: "Gerenciar conexões",
           reports: "Relatórios",
           management: "Gerência"
@@ -1236,7 +1323,59 @@ const messages = {
           deleted: "Registro excluído",
         },
       },
-
+      customers: {
+        title: "Cliente",
+        searchPlaceholder: "Pesquisa",
+        confirmationModal: {
+          deleteTitle: "Você tem certeza que quer excluir esta cliente?",
+          deleteMessage: "Esta ação não pode ser revertida."
+        },
+        table: {
+          document: "Cpf/Cnpj",
+          name: "Nome",
+          email: "E-mail",
+          portifolio: "Carteira",
+          birthday: "Aniversário",
+          customerDefault: "Não Identificado",
+          actions: "Ações"
+        },
+        buttons: {
+          add: "Nova Cliente",
+          attach: "Upload de Imagem"
+        },
+        toasts: {
+          deleted: "Cliente excluído com sucesso."
+        }
+      },
+      customerAddress: {
+        title: "Enderecos",
+        searchPlaceholder: "Pesquisa",
+        buttons: {
+          add: "Novo",
+          lists: "Listas",
+          import: "Importar"
+        },
+        table: {
+          isActive: "Principal",
+          type: "Nome",
+          zipCode: "Cep",
+          address: "Endereço",
+          number: "Número",
+          state: "Uf",
+          city: "Cidade",
+          neighborhood: "Bairro",
+          actions: "Ações"
+        },
+        confirmationModal: {
+          deleteTitle: "Excluir",
+          deleteMessage: "Esta ação não pode ser revertida.",
+          importMessage: "Deseja importar os contatos desta planilha? ",
+          importTitlte: "Importar"
+        },
+        toasts: {
+          deleted: "Registro excluído"
+        }
+      },
       kanban: {
         title: "Kanban",
         searchPlaceholder: "Pesquisa",

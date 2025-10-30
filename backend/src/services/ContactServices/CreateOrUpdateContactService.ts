@@ -23,6 +23,7 @@ interface Request {
   email?: string;
   profilePicUrl?: string;
   companyId: number;
+  customerId?: number;
   channel?: string;
   extraInfo?: ExtraInfo[];
   remoteJid?: string;
@@ -72,6 +73,7 @@ const CreateOrUpdateContactService = async ({
   email = "",
   channel = "whatsapp",
   companyId,
+  customerId,
   extraInfo = [],
   remoteJid = "",
   whatsappId,
@@ -154,6 +156,7 @@ const CreateOrUpdateContactService = async ({
         email,
         isGroup,
         companyId,
+        customerId,
         channel,
         acceptAudioMessage: acceptAudioMessageContact === 'enabled' ? true : false,
         remoteJid: newRemoteJid,

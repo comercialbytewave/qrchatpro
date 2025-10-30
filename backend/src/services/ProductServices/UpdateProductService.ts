@@ -2,6 +2,7 @@ import * as Yup from "yup";
 
 import AppError from "../../errors/AppError";
 import Product from "../../models/Product";
+import Category from "../../models/Category";
 
 interface ProductData {
   id?: number;
@@ -45,7 +46,6 @@ const UpdateProductService = async ({
 
   if (code && code !== product.code) {
     const codeExists = await Product.findOne({ where: { code, companyId } });
-
     if (codeExists) {
       throw new AppError("ERR_PRODUCT_CONFLICT_CODE", 409);
     }
@@ -60,7 +60,9 @@ const UpdateProductService = async ({
     categoryId
   });
 
-  await product.reload();
+  // corrigido alias: deve ser o mesmo definido em Product.belongsTo(Category)
+  await product.reload({ include: [{ model: Category, as: "category" }] });
+
   return product;
 };
 

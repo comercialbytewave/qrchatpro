@@ -57,6 +57,7 @@ interface ContactData {
   extraInfo?: ExtraInfo[];
   disableBot?: boolean;
   remoteJid?: string;
+  customerId?: number;
   wallets?: null | number[] | string[];
 }
 

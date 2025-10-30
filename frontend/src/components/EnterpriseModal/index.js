@@ -198,7 +198,7 @@ const EnterpriseModal = ({ open, onClose, companyId, reload }) => {
                     src={
                       attachment
                         ? values.mediaPath // Exibir a pré-visualização se houver imagem anexada
-                        : `${process.env.REACT_APP_BACKEND_URL}/public/${values.mediaPath}`
+                        : `${process.env.REACT_APP_BACKEND_URL}/public/company${company.id}/${values.mediaPath}`
                     }
                     alt="Preview"
                     className={classes.imagePreview}

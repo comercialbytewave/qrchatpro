@@ -56,6 +56,9 @@ import Product from "../models/Product";
 import Category from "../models/Category";
 import Store from "../models/Stores";
 import ProductStore from "../models/ProductStore";
+import Portifolio from "../models/Portifolio";
+import Customer from "../models/Customer";
+import CustomerAddress from "../models/CustomerAddress";
 
 // eslint-disable-next-line
 const dbConfig = require("../config/database");
@@ -119,6 +122,9 @@ const models = [
   Category,
   ProductStore,
   Store,
+  Portifolio,
+  Customer,
+  CustomerAddress,
   WebhookModel
 ];
 

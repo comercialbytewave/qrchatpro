@@ -49,9 +49,9 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   const product = await CreateProductService(payload);
 
   const io = getIO();
-  io.emit(`company-${companyId}-product`, {
-    action: "create",
-    product
+  io.of(String(companyId)).emit(`company-${companyId}-product`, {
+    action: "update",
+    product: product
   });
  
   return res.status(200).json(product);
@@ -96,17 +96,17 @@ export const remove = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
+  const { companyId } = req.user;
   const { productId } = req.params;
 
   await DeleteProductService(productId);
 
   const io = getIO();
-  io.emit(`company-${companyId}-product`, {
+  io.of(String(companyId)).emit(`company-${companyId}-product`, {
     action: "delete",
-    productId
+    productId: +productId
   });
-
- 
+  
   return res.status(200).json({ message: "Product deleted" });
 };
 

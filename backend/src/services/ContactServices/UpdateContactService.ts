@@ -18,6 +18,7 @@ interface ContactData {
   email?: string;
   number?: string;
   name?: string;
+  customerId?: number;
   acceptAudioMessage?: boolean;
   active?: boolean;
   extraInfo?: ExtraInfo[];
@@ -37,12 +38,12 @@ const UpdateContactService = async ({
   contactId,
   companyId
 }: Request): Promise<Contact> => {
-  const { email, name, number, extraInfo, acceptAudioMessage, active, disableBot, remoteJid, wallets } = contactData;
+  const { email, name, number, extraInfo, acceptAudioMessage, active, disableBot, remoteJid, wallets, customerId } = contactData;
 
   const contact = await Contact.findOne({
     where: { id: contactId },
-    attributes: ["id", "name", "number", "channel", "email", "companyId", "acceptAudioMessage", "active", "profilePicUrl", "remoteJid", "urlPicture"],
-    include: ["extraInfo", "tags",
+    attributes: ["id", "name", "number", "channel", "email", "companyId", "acceptAudioMessage", "active", "profilePicUrl", "remoteJid", "urlPicture", "customerId"],
+    include: ["extraInfo", "tags", "customer",
       {
         association: "wallets",
         attributes: ["id", "name"]
@@ -103,12 +104,13 @@ const UpdateContactService = async ({
     acceptAudioMessage,
     active,
     disableBot,
-    remoteJid
+    remoteJid,
+    customerId
   });
 
   await contact.reload({
-    attributes: ["id", "name", "number", "channel", "email", "companyId", "acceptAudioMessage", "active", "profilePicUrl", "remoteJid", "urlPicture"],
-    include: ["extraInfo", "tags",
+    attributes: ["id", "name", "number", "channel", "email", "companyId", "acceptAudioMessage", "active", "profilePicUrl", "remoteJid", "urlPicture", "customerId"],
+    include: ["extraInfo", "tags", "customers",
       {
         association: "wallets",
         attributes: ["id", "name"]

@@ -864,7 +864,7 @@ const messages = {
           queueIntegration: "Integraciones",
           version: "Versión",
           kanban: "Kanban",
-          prompts: "Talk.Ai",
+          prompts: "OpenIA",
           allConnections: "Admin conexiones",
         },
         appBar: {

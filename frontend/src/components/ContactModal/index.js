@@ -220,7 +220,7 @@ const ContactModal = ({ open, onClose, contactId, initialValues, onSave }) => {
 									{i18n.t("contactModal.form.termsLGDP")} {contact?.lgpdAcceptedAt ? format(new Date(contact?.lgpdAcceptedAt), "dd/MM/yyyy 'às' HH:mm") : ""}
 								</Typography>
 
-								{/* <Typography variant="subtitle1" gutterBottom>{i18n.t("contactModal.form.customer_portfolio")}</Typography> */}
+								{/* <Typography variant="subtitle1" gutterBottom>{i18n.t("contactModal.form.customer_portifolio")}</Typography> */}
 								{/* <div style={{ marginTop: 10 }}>
 									<AsyncSelect url="/users" dictKey={"users"}
 										initialValue={values.user} width="100%" label={i18n.t("contactModal.form.attendant")}

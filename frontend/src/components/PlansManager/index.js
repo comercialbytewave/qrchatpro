@@ -335,11 +335,11 @@ export function PlanManagerForm(props) {
                         {/* OPENAI */}
                         <Grid xs={12} sm={8} md={2} item>
                             <FormControl margin="dense" variant="outlined" fullWidth>
-                                <InputLabel htmlFor="useOpenAi-selection">Talk.Ai</InputLabel>
+                                <InputLabel htmlFor="useOpenAi-selection">OpenIA</InputLabel>
                                 <Field
                                     as={Select}
                                     id="useOpenAi-selection"
-                                    label="Talk.Ai"
+                                    label="OpenIA"
                                     labelId="useOpenAi-selection-label"
                                     name="useOpenAi"
                                     margin="dense"
@@ -463,7 +463,7 @@ export function PlansManagerGrid(props) {
                         <TableCell align="center">Chat Interno</TableCell>
                         <TableCell align="center">API Externa</TableCell>
                         <TableCell align="center">Kanban</TableCell>
-                        <TableCell align="center">Talk.Ai</TableCell>
+                        <TableCell align="center">OpenIA</TableCell>
                         <TableCell align="center">Integrações</TableCell>
                     </TableRow>
                 </TableHead>

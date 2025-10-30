@@ -51,10 +51,11 @@ export const store = async (req: Request, res: Response): Promise<Response> => {
   });
 
   const io = getIO();
-  io.emit(`company-${companyId}-category`, {
-    action: "create",
-    store
+  io.of(String(companyId)).emit(`company-${companyId}-category`, {
+    action: "update",
+    category: category
   });
+
  
   return res.status(200).json(category);
 };

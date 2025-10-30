@@ -38,8 +38,7 @@ const CreateProductService = async ({
   }
 
   if (code) {
-    const codeExists = await Product.findOne({ where: { code, companyId } });
-
+    const codeExists = await Product.findOne({ where: { code, categoryId, companyId } });
     if (codeExists) {
       throw new AppError("ERR_PRODUCT_CONFLICT_CODE", 409);
     }
@@ -47,10 +46,11 @@ const CreateProductService = async ({
 
   const [product] = await Product.findOrCreate({
     where: { ean, code, name, description, isActive, categoryId, companyId },
-    defaults: {  ean, code, name, description, isActive, categoryId, companyId }
+    defaults: { ean, code, name, description, isActive, categoryId, companyId }
   });
 
-  await product.reload();
+  // Corrigido alias para "category" (conforme definição do model)
+  await product.reload({ include: [{ model: Category, as: "category" }] });
 
   return product;
 };

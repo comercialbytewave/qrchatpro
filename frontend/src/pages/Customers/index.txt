@@ -1,0 +1,364 @@
+import React, {
+  useState,
+  useEffect,
+  useReducer,
+  useCallback,
+  useContext
+} from "react";
+import { toast } from "react-toastify";
+
+import { makeStyles } from "@material-ui/core/styles";
+import Paper from "@material-ui/core/Paper";
+import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import IconButton from "@material-ui/core/IconButton";
+import SearchIcon from "@material-ui/icons/Search";
+import TextField from "@material-ui/core/TextField";
+import InputAdornment from "@material-ui/core/InputAdornment";
+
+import EmojiTransportation from "@material-ui/icons/EmojiTransportation";
+
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import EditIcon from "@material-ui/icons/Edit";
+import MainContainer from "../../components/MainContainer";
+import MainHeader from "../../components/MainHeader";
+import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
+import Title from "../../components/Title";
+
+import api from "../../services/api";
+import { i18n } from "../../translate/i18n";
+import TableRowSkeleton from "../../components/TableRowSkeleton";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import toastError from "../../errors/toastError";
+
+import { SocketContext } from "../../context/Socket/SocketContext";
+import { AuthContext } from "../../context/Auth/AuthContext";
+import CustomerModal from "../../components/CustomerModal";
+import CustomerAddressModal from "../../components/CustomerAddressModal";
+import { Cancel, CheckCircle, ContactPhone } from "@material-ui/icons";
+import moment from "moment";
+import { green, red } from "@material-ui/core/colors";
+
+const reducer = (state, action) => {
+  if (action.type === "LOAD_CUSTOMERS") {
+    const customers = action.payload;
+    const newCategories = [];
+
+    customers.forEach(customer => {
+      const categoryIndex = state.findIndex(s => s.id === customer.id);
+      if (categoryIndex !== -1) {
+        state[categoryIndex] = customer;
+      } else {
+        newCategories.push(customer);
+      }
+    });
+
+    return [...state, ...newCategories];
+  }
+
+  if (action.type === "UPDATE_CUSTOMERS") {
+    const customer = action.payload;
+    const categoryIndex = state.findIndex(s => s.id === customer.id);
+
+    if (categoryIndex !== -1) {
+      state[categoryIndex] = customer;
+      return [...state];
+    } else {
+      return [customer, ...state];
+    }
+  }
+
+  if (action.type === "DELETE_CUSTOMER") {
+    const customerId = action.payload;
+
+    const categoryIndex = state.findIndex(s => s.id === customerId);
+    if (categoryIndex !== -1) {
+      state.splice(categoryIndex, 1);
+    }
+    return [...state];
+  }
+
+  if (action.type === "RESET") {
+    return [];
+  }
+};
+
+const useStyles = makeStyles(theme => ({
+  mainPaper: {
+    flex: 1,
+    padding: theme.spacing(1),
+    overflowY: "scroll",
+    ...theme.scrollbarStyles
+  }
+}));
+
+const Customers = () => {
+  const classes = useStyles();
+
+  const { user } = useContext(AuthContext);
+
+  const [loading, setLoading] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [deletingCustomer, setDeletingCustomer] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [searchParam, setSearchParam] = useState("");
+  const [customers, dispatch] = useReducer(reducer, []);
+  const [customerModalOpen, setCustomerModalOpen] = useState(false);
+
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+  const [customerAddressModalOpen, setCustomertAddressModalOpen] =
+    useState(false);
+
+  const fetchTags = useCallback(async () => {
+    try {
+      const { data } = await api.get("/customers/", {
+        params: { searchParam, pageNumber }
+      });
+      dispatch({ type: "LOAD_CUSTOMERS", payload: data.customers });
+      setHasMore(data.hasMore);
+      setLoading(false);
+    } catch (err) {
+      toastError(err);
+    }
+  }, [searchParam, pageNumber]);
+
+  const socketManager = useContext(SocketContext);
+
+  useEffect(() => {
+    dispatch({ type: "RESET" });
+    setPageNumber(1);
+  }, [searchParam]);
+
+  useEffect(() => {
+    setLoading(true);
+    const delayDebounceFn = setTimeout(() => {
+      fetchTags();
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchParam, pageNumber, fetchTags]);
+
+  useEffect(() => {
+    const socket = socketManager.getSocket(user.companyId);
+
+    socket.on("user", data => {
+      if (data.action === "update" || data.action === "create") {
+        dispatch({ type: "UPDATE_CUSTOMERS", payload: data.customers });
+      }
+
+      if (data.action === "delete") {
+        dispatch({ type: "DELETE_CUSTOMER", payload: +data.customerId });
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [socketManager, user]);
+
+  const handleOpenCustomerModal = () => {
+    setSelectedCustomer(null);
+    setCustomerModalOpen(true);
+  };
+
+  const handleCloseCustomerModal = () => {
+    setSelectedCustomer(null);
+    setCustomerModalOpen(false);
+  };
+
+  const handleSearch = event => {
+    setSearchParam(event.target.value.toLowerCase());
+  };
+
+  const handleEditCustomer = customer => {
+    setSelectedCustomer(customer);
+    setCustomerModalOpen(true);
+  };
+
+  const hadleEditCustomerAddress = customerId => {
+    setSelectedCustomerId(customerId);
+    setCustomertAddressModalOpen(true);
+  };
+
+  const handleCloseCustomertAddressModal = () => {
+    setSelectedCustomerId(null);
+    setCustomertAddressModalOpen(false);
+  };
+
+  const handleDeleteCustomer = async customerId => {
+    try {
+      await api.delete(`/customers/${customerId}`);
+      toast.success(i18n.t("customers.toasts.deleted"));
+    } catch (err) {
+      toastError(err);
+    }
+    setDeletingCustomer(null);
+    setSearchParam("");
+    setPageNumber(1);
+
+    dispatch({ type: "RESET" });
+    setPageNumber(1);
+    await fetchTags();
+  };
+
+  const loadMore = () => {
+    setPageNumber(prevState => prevState + 1);
+  };
+
+  const handleScroll = e => {
+    if (!hasMore || loading) return;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - (scrollTop + 100) < clientHeight) {
+      loadMore();
+    }
+  };
+
+  return (
+    <MainContainer>
+      <ConfirmationModal
+        title={
+          deletingCustomer &&
+          `${i18n.t("customers.confirmationModal.deleteTitle")}`
+        }
+        open={confirmModalOpen}
+        onClose={setConfirmModalOpen}
+        onConfirm={() => handleDeleteCustomer(deletingCustomer.id)}
+      >
+        {i18n.t("customers.confirmationModal.deleteMessage")}
+      </ConfirmationModal>
+      <CustomerModal
+        open={customerModalOpen}
+        onClose={handleCloseCustomerModal}
+        reload={fetchTags}
+        aria-labelledby="form-dialog-title"
+        customerId={selectedCustomer && selectedCustomer.id}
+        contactId={0}
+      />
+       <CustomerAddressModal
+        aria-labelledby="form-dialog-title"
+        customerId={selectedCustomerId }
+        open={customerAddressModalOpen}
+        onClose={handleCloseCustomertAddressModal}
+      />
+      <MainHeader>
+        <Title>{i18n.t("customers.title")}</Title>
+        <MainHeaderButtonsWrapper>
+          <TextField
+            placeholder={i18n.t("contacts.searchPlaceholder")}
+            type="search"
+            value={searchParam}
+            onChange={handleSearch}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon style={{ color: "gray" }} />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOpenCustomerModal}
+          >
+            {i18n.t("customers.buttons.add")}
+          </Button>
+        </MainHeaderButtonsWrapper>
+      </MainHeader>
+      <Paper
+        className={classes.mainPaper}
+        variant="outlined"
+        onScroll={handleScroll}
+      >
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell align="center">
+                {i18n.t("customers.table.document")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("customers.table.name")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("customers.table.email")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("customers.table.birthday")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("customers.table.portfolio")}
+              </TableCell>      
+              <TableCell align="center">
+                {i18n.t("customers.table.customerDefault")}
+              </TableCell>             
+              <TableCell align="center">
+                {i18n.t("customers.table.actions")}
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <>
+              {customers.map(customer => (
+                <TableRow key={customer.id}>
+                  <TableCell align="center">{customer.document}</TableCell>
+                  <TableCell align="center">{customer.fullName}</TableCell>
+                  <TableCell align="center">{customer.email}</TableCell>
+                  <TableCell align="center">{ moment(customer.birthday).format("DD/MM") }</TableCell>
+                 
+                  <TableCell align="center">
+                    {customer.portfolio.name}
+                  </TableCell>
+                  <TableCell align="center">
+                    {customer.customerDefault ? (
+                      <div className={classes.customTableCell}>
+                        <CheckCircle style={{ color: green[500] }} />
+                      </div>
+                    ) : (
+                      <div className={classes.customTableCell}>
+                        <Cancel style={{ color: red[500] }} />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEditCustomer(customer)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={e => {
+                        setConfirmModalOpen(true);
+                        setDeletingCustomer(customer);
+                      }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => hadleEditCustomerAddress(customer.id)}
+                    >
+                      <EmojiTransportation />
+                    </IconButton>
+                   
+                  </TableCell>
+                </TableRow>
+              ))}
+              {loading && <TableRowSkeleton columns={5} />}
+            </>
+          </TableBody>
+        </Table>
+      </Paper>
+    </MainContainer>
+  );
+};
+
+export default Customers;

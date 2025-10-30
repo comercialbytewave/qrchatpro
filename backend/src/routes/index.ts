@@ -50,6 +50,8 @@ import storeRoutes from "./storeRoutes";
 import categoriesRoutes from "./categoryRoutes";
 import productsRoutes from "./productRoutes";
 import productStoresRoutes from "./productStoreRoutes";
+import portifolioRoutes from "./portifolioRoutes";
+import customersRoutes from "./customerRoutes";
 
 const routes = Router();
 
@@ -106,5 +108,8 @@ routes.use(storeRoutes);
 routes.use(categoriesRoutes);
 routes.use(productsRoutes);
 routes.use(productStoresRoutes);
+
+routes.use(portifolioRoutes);
+routes.use(customersRoutes);
 
 export default routes;

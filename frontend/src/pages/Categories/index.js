@@ -144,6 +144,7 @@ const Categories = () => {
   const handleDeleteCategory = async (categoryId) => {
     try {
       await api.delete(`/categories/${categoryId}`);
+      dispatch({ type: "DELETE_CATEGORIES", payload: +categoryId });
       toast.success(i18n.t("categories.toasts.deleted"));
     } catch (err) {
       toastError(err);
@@ -153,6 +154,7 @@ const Categories = () => {
     setPageNumber(1);
   };
 
+ 
   const loadMore = () => {
     setPageNumber((prevPageNumber) => prevPageNumber + 1);
   };

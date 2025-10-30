@@ -23,6 +23,7 @@ import Tag from "./Tag";
 import ContactWallet from "./ContactWallet";
 import User from "./User";
 import Whatsapp from "./Whatsapp";
+import Customer from "./Customer";
 
 @Table
 class Contact extends Model<Contact> {
@@ -85,6 +86,13 @@ class Contact extends Model<Contact> {
 
   @BelongsToMany(() => Tag, () => ContactTag)
   tags: Tag[];
+
+  @ForeignKey(() => Customer)
+  @Column
+  customerId: number;
+
+  @BelongsTo(() => Customer)
+  customer: Customer;
 
   @ForeignKey(() => Company)
   @Column
