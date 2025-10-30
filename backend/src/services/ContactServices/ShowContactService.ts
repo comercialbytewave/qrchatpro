@@ -15,7 +15,11 @@ const ShowContactService = async (
       {
         model: Whatsapp,
         as: "whatsapp",
-        attributes: ["id", "name", "expiresTicket", "groupAsTicket"]
+        attributes: ["id", "name", "expiresTicket", "groupAsTicket" ]
+      },
+      {
+        association: "customer",
+        attributes: ["id", "document", "fullName", "email", "birthday", "portifolioId", "customerDefault"]
       },
     ]
   });

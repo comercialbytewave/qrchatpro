@@ -78,13 +78,13 @@ const CustomerContactModal = ({ open, onClose, contactId, reload }) => {
     document: "",
     fullName: "",
     email: "",
-    portfolioId: ""
+    portifolioId: ""
   };
 
   const [isCustomerEnable, setIsCustomerEnable] = useState(false);
   const [contact, setContact] = useState(null);
   const [customer, setCustomer] = useState(initialState);
-  const [portfolios, setPortfolios] = useState([]);
+  const [portifolios, setPortifolios] = useState([]);
   
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [customerAddressModalOpen, setCustomertAddressModalOpen] =
@@ -111,8 +111,8 @@ const CustomerContactModal = ({ open, onClose, contactId, reload }) => {
 
   useEffect(() => {
     async function fetchData() {
-      const { data } = await api.get(`/portfolios`);
-      setPortfolios(data.portfolios);
+      const { data } = await api.get(`/portifolios`);
+      setPortifolios(data.portifolios);
     }
     fetchData();
   }, []);
@@ -152,7 +152,7 @@ const CustomerContactModal = ({ open, onClose, contactId, reload }) => {
       setFieldValue("document", customer.data.document);
       setFieldValue("fullName", customer.data.fullName);
       setFieldValue("email", customer.data.email);
-      setFieldValue("portfolioId", customer.data.portfolioId);
+      setFieldValue("portifolioId", customer.data.portifolioId);
     } catch (error) {
       console.error("Erro ao buscar Documento", error);
       toast.error("Ops! Documento não encontrado");
@@ -193,7 +193,7 @@ const CustomerContactModal = ({ open, onClose, contactId, reload }) => {
       if (typeof reload === "function") {
         reload();
       }
-      window.location.reload();
+     // window.location.reload();
     } catch (err) {
       toastError(err);
     }
@@ -325,14 +325,14 @@ const CustomerContactModal = ({ open, onClose, contactId, reload }) => {
                     id="user-selection"
                     label="Carteira"
                     labelId="user-selection-label"
-                    name="portfolioId"
+                    name="portifolioId"
                     margin="dense"
                     required
                    // disabled={customer.id}
                     fullWidth
                     disabled={isCustomerEnable ? false : true}
                   >
-                    {portfolios.map((portfolio, key) => (
+                    {portifolios.map((portfolio, key) => (
                       <MenuItem key={key} value={portfolio.id}>
                         {portfolio.name}
                       </MenuItem>

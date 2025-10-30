@@ -110,7 +110,7 @@ const UpdateContactService = async ({
 
   await contact.reload({
     attributes: ["id", "name", "number", "channel", "email", "companyId", "acceptAudioMessage", "active", "profilePicUrl", "remoteJid", "urlPicture", "customerId"],
-    include: ["extraInfo", "tags", "customers",
+    include: ["extraInfo", "tags", "customer",
       {
         association: "wallets",
         attributes: ["id", "name"]
