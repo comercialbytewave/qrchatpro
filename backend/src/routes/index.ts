@@ -52,6 +52,9 @@ import productsRoutes from "./productRoutes";
 import productStoresRoutes from "./productStoreRoutes";
 import portifolioRoutes from "./portifolioRoutes";
 import customersRoutes from "./customerRoutes";
+import paymentsRoutes from "./PaymentRoutes";
+import paymentDetailRoutes from "./paymentDetailRoutes";
+import typePaymentRoutes from "./typePaymentRoutes";
 
 const routes = Router();
 
@@ -111,5 +114,9 @@ routes.use(productStoresRoutes);
 
 routes.use(portifolioRoutes);
 routes.use(customersRoutes);
+
+routes.use(paymentsRoutes);
+routes.use(paymentDetailRoutes);
+routes.use(typePaymentRoutes)
 
 export default routes;

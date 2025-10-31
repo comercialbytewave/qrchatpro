@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 
 import Customer from "../../models/Customer";
 import Portifolio from "../../models/Portifolio";
+import Contact from "../../models/Contact";
 
 interface Request {
   companyId: number;
@@ -39,6 +40,11 @@ const ListCustomerService = async ({
         model: Portifolio,
         as: "portifolio",
         attributes: ["id", "name"]
+      },
+      {
+        model: Contact, // ✅ inclui os contatos do cliente
+        as: "contacts", // o alias deve bater com o definido na associação
+        attributes: ["id", "name"], // ajuste conforme suas colunas
       }
     ]
   });

@@ -59,6 +59,9 @@ import ProductStore from "../models/ProductStore";
 import Portifolio from "../models/Portifolio";
 import Customer from "../models/Customer";
 import CustomerAddress from "../models/CustomerAddress";
+import Payment from "../models/Payment";
+import TypePayments from "../models/TypePayment";
+import PaymentDetails from "../models/PaymentDetails";
 
 // eslint-disable-next-line
 const dbConfig = require("../config/database");
@@ -125,6 +128,9 @@ const models = [
   Portifolio,
   Customer,
   CustomerAddress,
+  Payment,
+  TypePayments,
+  PaymentDetails,
   WebhookModel
 ];
 

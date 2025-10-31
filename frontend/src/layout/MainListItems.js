@@ -1038,7 +1038,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                               >
                                 <List dense component="div" disablePadding>
                                   <ListItemLink
-                                    to="/categories"
+                                    to="/payments"
                                     primary={i18n.t(
                                       "mainDrawer.listItems.paymentMethods"
                                     )}

@@ -1,0 +1,367 @@
+import React, {
+  useState,
+  useEffect,
+  useReducer,
+  useCallback,
+  useContext
+} from "react";
+import { toast } from "react-toastify";
+
+import { makeStyles } from "@material-ui/core/styles";
+import Paper from "@material-ui/core/Paper";
+import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import IconButton from "@material-ui/core/IconButton";
+import SearchIcon from "@material-ui/icons/Search";
+import TextField from "@material-ui/core/TextField";
+import InputAdornment from "@material-ui/core/InputAdornment";
+
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import EditIcon from "@material-ui/icons/Edit";
+import MainContainer from "../../components/MainContainer";
+import MainHeader from "../../components/MainHeader";
+import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
+import Title from "../../components/Title";
+
+import api from "../../services/api";
+import { i18n } from "../../translate/i18n";
+import TableRowSkeleton from "../../components/TableRowSkeleton";
+import CategoryModal from "../../components/CategoryModal";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import toastError from "../../errors/toastError";
+import { Chip } from "@material-ui/core";
+
+import { SocketContext } from "../../context/Socket/SocketContext";
+import { AuthContext } from "../../context/Auth/AuthContext";
+import PaymentModal from "../../components/PaymentModal";
+import { Cancel, CheckCircle, CreditCard } from "@material-ui/icons";
+import { green, red } from "@material-ui/core/colors";
+import PaymentDetailModal from "../../components/PaymentDetailModal";
+
+const reducer = (state, action) => {
+  if (action.type === "LOAD_PAYMENTS") {
+    const payments = action.payload;
+    const newPayments = [];
+
+    payments.forEach(payment => {
+      const paymentIndex = state.findIndex(s => s.id === payment.id);
+      if (paymentIndex !== -1) {
+        state[paymentIndex] = payment;
+      } else {
+        newPayments.push(payment);
+      }
+    });
+
+    return [...state, ...newPayments];
+  }
+
+  if (action.type === "UPDATE_PAYMENTS") {
+    const payment = action.payload;
+    const paymentIndex = state.findIndex(s => s.id === payment.id);
+
+    if (paymentIndex !== -1) {
+      state[paymentIndex] = payment;
+      return [...state];
+    } else {
+      return [payment, ...state];
+    }
+  }
+
+  if (action.type === "DELETE_PAYMENT") {
+    const paymentId = action.payload;
+
+    const paymentIndex = state.findIndex(s => s.id === paymentId);
+    if (paymentIndex !== -1) {
+      state.splice(paymentIndex, 1);
+    }
+    return [...state];
+  }
+
+  if (action.type === "RESET") {
+    return [];
+  }
+};
+
+const useStyles = makeStyles(theme => ({
+  mainPaper: {
+    flex: 1,
+    padding: theme.spacing(1),
+    overflowY: "scroll",
+    ...theme.scrollbarStyles
+  }
+}));
+
+const Payments = () => {
+  const classes = useStyles();
+
+  const { user } = useContext(AuthContext);
+
+  const [loading, setLoading] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [deletingPayment, setDeletingPayment] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [searchParam, setSearchParam] = useState("");
+  const [payments, dispatch] = useReducer(reducer, []);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentDetailModalOpen, setPaymentDetailModalOpen] = useState(false);
+
+  const fetchTags = useCallback(async () => {
+    try {
+      const { data } = await api.get("/payments/", {
+        params: { searchParam, pageNumber }
+      });
+      dispatch({ type: "LOAD_PAYMENTS", payload: data.payments });
+      setHasMore(data.hasMore);
+      setLoading(false);
+    } catch (err) {
+      toastError(err);
+    }
+  }, [searchParam, pageNumber]);
+
+  const socketManager = useContext(SocketContext);
+
+  useEffect(() => {
+    dispatch({ type: "RESET" });
+    setPageNumber(1);
+  }, [searchParam]);
+
+  useEffect(() => {
+    setLoading(true);
+    const delayDebounceFn = setTimeout(() => {
+      fetchTags();
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchParam, pageNumber, fetchTags]);
+
+  useEffect(() => {
+    const socket = socketManager.getSocket(user.companyId);
+
+    socket.on("user", data => {
+      if (data.action === "update" || data.action === "create") {
+        dispatch({ type: "UPDATE_PAYMENTS", payload: data.payments });
+      }
+
+      if (data.action === "delete") {
+        dispatch({ type: "DELETE_PAYMENT", payload: +data.paymentId });
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [socketManager, user]);
+
+  const hadleEditPaymentDetail = paymentId => {
+    setSelectedPayment(paymentId);
+    setPaymentDetailModalOpen(true);
+  };
+
+  const handleOpenPaymentModal = () => {
+    setSelectedPayment(null);
+    setPaymentModalOpen(true);
+  };
+
+  const handleClosePaymentModal = () => {
+    setSelectedPayment(null);
+    setPaymentModalOpen(false);
+  };
+
+const hadleEditPaymentDetail = paymentId => {
+    setSelectedPayment(paymentId);
+    setPaymentDetailModalOpen(true);
+  };
+  
+  const handleClosePaymentDetailModal = () => {
+    setSelectedPayment(null);
+    setPaymentDetailModalOpen(false);
+  };
+
+  const handleSearch = event => {
+    setSearchParam(event.target.value.toLowerCase());
+  };
+
+  const handleEditPayment = payment => {
+    setSelectedPayment(payment);
+    setPaymentModalOpen(true);
+  };
+
+  const handleDeleteCategory = async paymentId => {
+    try {
+      await api.delete(`/payments/${paymentId}`);
+      toast.success(i18n.t("payments.toasts.deleted"));
+    } catch (err) {
+      toastError(err);
+    }
+    setDeletingPayment(null);
+    setSearchParam("");
+    setPageNumber(1);
+
+    dispatch({ type: "RESET" });
+    setPageNumber(1);
+    await fetchTags();
+  };
+
+  const loadMore = () => {
+    setPageNumber(prevState => prevState + 1);
+  };
+
+  const handleScroll = e => {
+    if (!hasMore || loading) return;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - (scrollTop + 100) < clientHeight) {
+      loadMore();
+    }
+  };
+
+  return (
+    <MainContainer>
+      <ConfirmationModal
+        title={
+          deletingPayment &&
+          `${i18n.t("payments.confirmationModal.deleteTitle")}`
+        }
+        open={confirmModalOpen}
+        onClose={setConfirmModalOpen}
+        onConfirm={() => handleDeleteCategory(deletingPayment.id)}
+      >
+        {i18n.t("payments.confirmationModal.deleteMessage")}
+      </ConfirmationModal>
+      <PaymentModal
+        open={paymentModalOpen}
+        onClose={handleClosePaymentModal}
+        reload={fetchTags}
+        aria-labelledby="form-dialog-title"
+        paymentId={selectedPayment && selectedPayment.id}
+      />
+      <PaymentDetailModal
+        aria-labelledby="form-dialog-title"
+        paymentId={selectedPayment && selectedPayment.id}
+        open={paymentDetailModalOpen}
+        onClose={handleClosePaymentDetailModal}
+      />
+      <MainHeader>
+        <Title>{i18n.t("payments.title")}</Title>
+        <MainHeaderButtonsWrapper>
+          <TextField
+            placeholder={i18n.t("contacts.searchPlaceholder")}
+            type="search"
+            value={searchParam}
+            onChange={handleSearch}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon style={{ color: "gray" }} />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOpenPaymentModal}
+          >
+            {i18n.t("payments.buttons.add")}
+          </Button>
+        </MainHeaderButtonsWrapper>
+      </MainHeader>
+      <Paper
+        className={classes.mainPaper}
+        variant="outlined"
+        onScroll={handleScroll}
+      >
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell align="center">
+                {i18n.t("payments.table.code")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("payments.table.name")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("payments.table.type")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("payments.table.change")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("payments.table.installments")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("payments.table.actions")}
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <>
+              {payments.map(payment => (
+                <TableRow key={payment.id}>
+                  <TableCell align="center">{payment.code}</TableCell>
+                  <TableCell align="center">{payment.name}</TableCell>
+                  <TableCell align="center">{payment.typePayment.code}</TableCell>
+                  <TableCell align="center">
+                    {payment.typePayment.change ? (
+                      <div className={classes.customTableCell}>
+                        <CheckCircle style={{ color: green[500] }} />
+                      </div>
+                    ) : (
+                      <div className={classes.customTableCell}>
+                        <Cancel style={{ color: red[500] }} />
+                      </div>
+                    )}
+                  </TableCell>
+                 
+                  <TableCell align="center">
+                    {payment.typePayment.installments ? (
+                      <div className={classes.customTableCell}>
+                        <CheckCircle style={{ color: green[500] }} />
+                      </div>
+                    ) : (
+                      <div className={classes.customTableCell}>
+                        <Cancel style={{ color: red[500] }} />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                  <IconButton
+                      size="small"
+                      disabled={!payment.typePayment.installments}
+                      onClick={() => hadleEditPaymentDetail(payment)}
+                    >
+                      <CreditCard />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEditPayment(payment)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={e => {
+                        setConfirmModalOpen(true);
+                        setDeletingPayment(payment);
+                      }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {loading && <TableRowSkeleton columns={6} />}
+            </>
+          </TableBody>
+        </Table>
+      </Paper>
+    </MainContainer>
+  );
+};
+
+export default Payments;

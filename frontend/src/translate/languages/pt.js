@@ -446,6 +446,39 @@ const messages = {
           cancel: "Cancelar"
         }
       },
+      paymentModal: {
+        title: {
+          add: "Adicionar meio pagamento",
+          edit: "Editar meio pagamento"
+        },
+        form: {
+          code: "Código",
+          name: "Nome",
+          type: "Tipo"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        },
+        success: "Meio de pagamento salvo com sucesso."
+      },
+      paymentDetailModal: {
+        title: {
+          add: "Adicionar parcela",
+          edit: "Editar parcela"
+        },
+        form: {
+          minimumValue: "Valor Mínimo da Parcela",
+          installments: "Parcelas"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        },
+        success: "Parcela salvo com sucesso."
+      },
       categoryModal: {
         form: {
           code: "Código",
@@ -1337,6 +1370,7 @@ const messages = {
           portifolio: "Carteira",
           birthday: "Aniversário",
           customerDefault: "Não Identificado",
+          contacts: "Contatos",
           actions: "Ações"
         },
         buttons: {
@@ -1371,6 +1405,47 @@ const messages = {
           deleteMessage: "Esta ação não pode ser revertida.",
           importMessage: "Deseja importar os contatos desta planilha? ",
           importTitlte: "Importar"
+        },
+        toasts: {
+          deleted: "Registro excluído"
+        }
+      },
+      payments: {
+        title: "Meio de Pagamentos",
+        confirmationModal: {
+          deleteTitle: "Você tem certeza que quer excluir esta pagamento?",
+          deleteMessage: "Esta ação não pode ser revertida."
+        },
+        table: {
+          code: "Código",
+          name: "Nome",
+          type: "Tipo",
+          change: "Troco?",
+          installments: "Parcelas?",
+          actions: "Ações"
+        },
+        buttons: {
+          add: "Nova Pagamento"
+        },
+        toasts: {
+          deleted: "Pagamento excluído com sucesso."
+        }
+      },
+      paymentDetails: {
+        title: "Parcelas",
+        searchPlaceholder: "Pesquisa",
+        buttons: {
+          add: "Novo",
+          lists: "Listas"
+        },
+        table: {
+          minimumValue: "Valor Mínimo da Parcela",
+          installments: "Números de Parcelas",
+          actions: "Ações"
+        },
+        confirmationModal: {
+          deleteTitle: "Excluir",
+          deleteMessage: "Esta ação não pode ser revertida."
         },
         toasts: {
           deleted: "Registro excluído"

@@ -32,29 +32,29 @@ import CategoryModal from "../../components/CategoryModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import toastError from "../../errors/toastError";
 import { AuthContext } from "../../context/Auth/AuthContext";
-import moment from "moment";
-import { Cancel, CheckCircle, EmojiTransportation } from "@material-ui/icons";
+import PaymentModal from "../../components/PaymentModal";
+import PaymentDetailModal from "../../components/PaymentDetailModal";
+import { Cancel, CheckCircle, CreditCard } from "@material-ui/icons";
 import { green, red } from "@material-ui/core/colors";
-import CustomerModal from "../../components/CustomerModal";
-import CustomerAddressModal from "../../components/CustomerAddressModal";
+
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "LOAD_CUSTOMERS":
+    case "LOAD_PAYMENTS":
       return [...state, ...action.payload];
-    case "UPDATE_CUSTOMERS":
-      const customer = action.payload;
-      const customerIndex = state.findIndex((s) => s.id === customer.id);
+    case "UPDATE_PAYMENTS":
+      const payment = action.payload;
+      const paymentIndex = state.findIndex((s) => s.id === payment.id);
 
-      if (customerIndex !== -1) {
-        state[customerIndex] = customer;
+      if (paymentIndex !== -1) {
+        state[paymentIndex] = payment;
         return [...state];
       } else {
-        return [customer, ...state];
+        return [payment, ...state];
       }
-    case "DELETE_CUSTOMERS":
-      const customerId = action.payload;
-      return state.filter((customer) => customer.id !== customerId);
+    case "DELETE_PAYMENTS":
+      const paymentId = action.payload;
+      return state.filter((payment) => payment.id !== paymentId);
     case "RESET":
       return [];
     default:
@@ -71,7 +71,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Customers = () => {
+const Payments = () => {
   const classes = useStyles();
   const { user, socket } = useContext(AuthContext);
 
@@ -79,22 +79,21 @@ const Customers = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
-  const [deletingCustomer, setDeletingCustomer] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const [deletingPayment, setDeletingPayment] = useState(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [searchParam, setSearchParam] = useState("");
-  const [customers, dispatch] = useReducer(reducer, []);
-  const [customerModalOpen, setCustomerModalOpen] = useState(false);
-  const [customerAddressModalOpen, setCustomertAddressModalOpen] = useState(false);
+  const [payments, dispatch] = useReducer(reducer, []);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentDetailModalOpen, setPaymentDetailModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchMoreCustomer = async () => {
+    const fetchMorePayments = async () => {
       try {
-        const { data } = await api.get("/customers", {
+        const { data } = await api.get("/payments", {
           params: { searchParam, pageNumber },
         });
-        dispatch({ type: "LOAD_CUSTOMERS", payload: data.customers });
+        dispatch({ type: "LOAD_PAYMENTS", payload: data.payments });
         setHasMore(data.hasMore);
         setLoading(false);
       } catch (err) {
@@ -104,35 +103,45 @@ const Customers = () => {
 
     if (pageNumber > 0) {
       setLoading(true);
-      fetchMoreCustomer();
+      fetchMorePayments();
     }
   }, [searchParam, pageNumber]);
 
   useEffect(() => {
-    const onCompanyCustomer = (data) => {
+    const onCompanyPayment = (data) => {
       if (data.action === "update" || data.action === "create") {
-        dispatch({ type: "UPDATE_CUSTOMERS", payload: data.customer });
+        dispatch({ type: "UPDATE_PAYMENTS", payload: data.payment });
       }
 
       if (data.action === "delete") {
-        dispatch({ type: "DELETE_CUSTOMERS", payload: +data.customerId });
+        dispatch({ type: "DELETE_PAYMENTS", payload: +data.paymentId });
       }
     };
-    socket.on(`company-${user.companyId}-customers`, onCompanyCustomer);
+    socket.on(`company-${user.companyId}-payment`, onCompanyPayment);
 
     return () => {
-      socket.off(`company-${user.companyId}-customers`, onCompanyCustomer);
+      socket.off(`company-${user.companyId}-payment`, onCompanyPayment);
     };
   }, [socket, user.companyId]);
 
-  const handleOpenCustomerModal = () => {
-    setSelectedCustomer(null);
-    setCustomerModalOpen(true);
+  const handleOpenPaymentModal = () => {
+    setSelectedPayment(null);
+    setPaymentModalOpen(true);
   };
 
-  const handleCloseCustomerModal = () => {
-    setSelectedCustomer(null);
-    setCustomerModalOpen(false);
+  const handleClosePaymentModal = () => {
+    setSelectedPayment(null);
+    setPaymentModalOpen(false);
+  };
+
+  const hadleEditPaymentDetail = paymentId => {
+    setSelectedPayment(paymentId);
+    setPaymentDetailModalOpen(true);
+  };
+  
+  const handleClosePaymentDetailModal = () => {
+    setSelectedPayment(null);
+    setPaymentDetailModalOpen(false);
   };
 
   const handleSearch = (event) => {
@@ -142,34 +151,25 @@ const Customers = () => {
     dispatch({ type: "RESET" });
   };
 
-  const handleEditCustomer = (customer) => {
-    setSelectedCustomer(customer);
-    setCustomerModalOpen(true);
+  const handleEditPayment = (payment) => {
+    setSelectedPayment(payment);
+    setPaymentModalOpen(true);
   };
 
-  const handleDeleteCustomer = async (customerId) => {
+  const handleDeletePayment = async (paymentId) => {
     try {
-      await api.delete(`/customers/${customerId}`);
-      dispatch({ type: "DELETE_CUSTOMERS", payload: +customerId });
-      toast.success(i18n.t("customers.toasts.deleted"));
+      await api.delete(`/payments/${paymentId}`);
+      dispatch({ type: "DELETE_PAYMENTS", payload: +paymentId });
+      toast.success(i18n.t("payments.toasts.deleted"));
     } catch (err) {
       toastError(err);
     }
-    setDeletingCustomer(null);
+    setDeletingPayment(null);
     setSearchParam("");
     setPageNumber(1);
   };
 
-  const hadleEditCustomerAddress = customerId => {
-    setSelectedCustomerId(customerId);
-    setCustomertAddressModalOpen(true);
-  };
-
-  const handleCloseCustomertAddressModal = () => {
-    setSelectedCustomerId(null);
-    setCustomertAddressModalOpen(false);
-  };
-
+ 
   const loadMore = () => {
     setPageNumber((prevPageNumber) => prevPageNumber + 1);
   };
@@ -184,36 +184,32 @@ const Customers = () => {
 
   return (
     <MainContainer className={classes.mainContainer}>
+      
       <ConfirmationModal
-        title={
-          deletingCustomer &&
-          `${i18n.t("customers.confirmationModal.deleteTitle")}`
-        }
+        title={deletingPayment && `${i18n.t("payments.confirmationModal.deleteTitle")}`}
         open={confirmModalOpen}
         onClose={() => setConfirmModalOpen(false)}
-        onConfirm={() => handleDeleteCustomer(deletingCustomer.id)}
+        onConfirm={() => handleDeletePayment(deletingPayment.id)}
       >
-        {i18n.t("customers.confirmationModal.deleteMessage")}
+        {i18n.t("payments.confirmationModal.deleteMessage")}
       </ConfirmationModal>
-      <CustomerModal
-        open={customerModalOpen}
-        onClose={handleCloseCustomerModal}
+      <PaymentModal
+        open={paymentModalOpen}
+        onClose={handleClosePaymentModal}
         aria-labelledby="form-dialog-title"
-        customerId={selectedCustomer && selectedCustomer.id}
+        paymentId={selectedPayment && selectedPayment.id}
       />
-       <CustomerAddressModal
+      <PaymentDetailModal
         aria-labelledby="form-dialog-title"
-        customerId={selectedCustomerId }
-        open={customerAddressModalOpen}
-        onClose={handleCloseCustomertAddressModal}
+        paymentId={selectedPayment && selectedPayment.id}
+        open={paymentDetailModalOpen}
+        onClose={handleClosePaymentDetailModal}
       />
       <MainHeader>
-        <Title>
-          {i18n.t("customers.title")} ({customers.length})
-        </Title>
+        <Title>{i18n.t("payments.title")} ({payments.length})</Title>
         <MainHeaderButtonsWrapper>
           <TextField
-            placeholder={i18n.t("customers.searchPlaceholder")}
+            placeholder={i18n.t("contacts.searchPlaceholder")}
             type="search"
             value={searchParam}
             onChange={handleSearch}
@@ -228,9 +224,9 @@ const Customers = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleOpenCustomerModal}
+            onClick={handleOpenPaymentModal}
           >
-            {i18n.t("customers.buttons.add")}
+            {i18n.t("payments.buttons.add")}
           </Button>
         </MainHeaderButtonsWrapper>
       </MainHeader>
@@ -242,48 +238,35 @@ const Customers = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell align="center">
-                {i18n.t("customers.table.document")}
+            <TableCell align="center">
+                {i18n.t("payments.table.code")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("customers.table.name")}
+                {i18n.t("payments.table.name")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("customers.table.email")}
+                {i18n.t("payments.table.type")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("customers.table.birthday")}
+                {i18n.t("payments.table.change")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("customers.table.portifolio")}
+                {i18n.t("payments.table.installments")}
               </TableCell>
               <TableCell align="center">
-                {i18n.t("customers.table.customerDefault")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("customers.table.contacts")}
-              </TableCell>
-              <TableCell align="center">
-                {i18n.t("customers.table.actions")}
+                {i18n.t("payments.table.actions")}
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            <>
-              {customers.map((customer) => (
-                <TableRow key={customer.id}>
-                  <TableCell align="center">{customer.document}</TableCell>
-                  <TableCell align="center">{customer.fullName}</TableCell>
-                  <TableCell align="center">{customer.email}</TableCell>
+          <>
+              {payments.map(payment => (
+                <TableRow key={payment.id}>
+                  <TableCell align="center">{payment.code}</TableCell>
+                  <TableCell align="center">{payment.name}</TableCell>
+                  <TableCell align="center">{payment.typePayment.code}</TableCell>
                   <TableCell align="center">
-                    {moment(customer.birthday).format("DD/MM")}
-                  </TableCell>
-
-                  <TableCell align="center">
-                    {customer.portifolio.name}
-                  </TableCell>
-                  <TableCell align="center">
-                    {customer.customerDefault ? (
+                    {payment.typePayment.change ? (
                       <div className={classes.customTableCell}>
                         <CheckCircle style={{ color: green[500] }} />
                       </div>
@@ -293,34 +276,46 @@ const Customers = () => {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell align="center">{customer?.contacts?.length}</TableCell>
+                 
                   <TableCell align="center">
+                    {payment.typePayment.installments ? (
+                      <div className={classes.customTableCell}>
+                        <CheckCircle style={{ color: green[500] }} />
+                      </div>
+                    ) : (
+                      <div className={classes.customTableCell}>
+                        <Cancel style={{ color: red[500] }} />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                  <IconButton
+                      size="small"
+                      disabled={!payment.typePayment.installments}
+                      onClick={() => hadleEditPaymentDetail(payment)}
+                    >
+                      <CreditCard />
+                    </IconButton>
                     <IconButton
                       size="small"
-                      onClick={() => handleEditCustomer(customer)}
+                      onClick={() => handleEditPayment(payment)}
                     >
                       <EditIcon />
                     </IconButton>
 
                     <IconButton
                       size="small"
-                      onClick={(e) => {
+                      onClick={e => {
                         setConfirmModalOpen(true);
-                        setDeletingCustomer(customer);
+                        setDeletingPayment(payment);
                       }}
                     >
                       <DeleteOutlineIcon />
                     </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => hadleEditCustomerAddress(customer.id)}
-                    >
-                      <EmojiTransportation />
-                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
-              {loading && <TableRowSkeleton columns={7} />}
+              {loading && <TableRowSkeleton columns={6} />}
             </>
           </TableBody>
         </Table>
@@ -329,4 +324,4 @@ const Customers = () => {
   );
 };
 
-export default Customers;
+export default Payments;
