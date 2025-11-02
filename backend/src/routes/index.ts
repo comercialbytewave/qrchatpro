@@ -55,6 +55,8 @@ import customersRoutes from "./customerRoutes";
 import paymentsRoutes from "./PaymentRoutes";
 import paymentDetailRoutes from "./paymentDetailRoutes";
 import typePaymentRoutes from "./typePaymentRoutes";
+import statusBudGetRoutes from "./statusBudGetRoutes";
+import budGetRoutes from "./budGetRoutes";
 
 const routes = Router();
 
@@ -118,5 +120,9 @@ routes.use(customersRoutes);
 routes.use(paymentsRoutes);
 routes.use(paymentDetailRoutes);
 routes.use(typePaymentRoutes)
+
+routes.use(statusBudGetRoutes);
+routes.use(budGetRoutes);
+
 
 export default routes;

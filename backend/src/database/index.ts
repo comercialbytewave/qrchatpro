@@ -63,6 +63,11 @@ import Payment from "../models/Payment";
 import TypePayments from "../models/TypePayment";
 import PaymentDetails from "../models/PaymentDetails";
 import { Coupon } from "../models/Coupon";
+import BudGet from "../models/BudGet";
+import BudGetItem from "../models/BudGetItem";
+import BudGetNegociation from "../models/BudGetNegociation";
+import BudGetAdressRouter from "../models/BudGetAdressRouter";
+import StatusBudGets from "../models/StatusBudGets";
 
 // eslint-disable-next-line
 const dbConfig = require("../config/database");
@@ -133,6 +138,11 @@ const models = [
   TypePayments,
   PaymentDetails,
   Coupon,
+  StatusBudGets,
+  BudGet,
+  BudGetItem,
+  BudGetNegociation,
+  BudGetAdressRouter,
   WebhookModel
 ];
 

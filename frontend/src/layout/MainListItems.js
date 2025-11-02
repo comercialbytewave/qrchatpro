@@ -61,6 +61,7 @@ import {
   PortraitOutlined,
   Storefront,
   Style,
+  WrapText,
 } from "@material-ui/icons";
 
 import { WhatsAppsContext } from "../context/WhatsApp/WhatsAppsContext";
@@ -1043,6 +1044,14 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                       "mainDrawer.listItems.paymentMethods"
                                     )}
                                     icon={<LocalAtmIcon />}
+                                    tooltip={collapsed}
+                                  />
+                                   <ListItemLink
+                                    to="/statusBudGets"
+                                    primary={i18n.t(
+                                      "mainDrawer.listItems.statusBudGets"
+                                    )}
+                                    icon={<WrapText />}
                                     tooltip={collapsed}
                                   />
                                 </List>

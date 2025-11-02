@@ -1,0 +1,303 @@
+import React, {
+  useState,
+  useEffect,
+  useReducer,
+  useCallback,
+  useContext
+} from "react";
+import { toast } from "react-toastify";
+
+import { makeStyles } from "@material-ui/core/styles";
+import Paper from "@material-ui/core/Paper";
+import Button from "@material-ui/core/Button";
+import Table from "@material-ui/core/Table";
+import TableBody from "@material-ui/core/TableBody";
+import TableCell from "@material-ui/core/TableCell";
+import TableHead from "@material-ui/core/TableHead";
+import TableRow from "@material-ui/core/TableRow";
+import IconButton from "@material-ui/core/IconButton";
+import SearchIcon from "@material-ui/icons/Search";
+import TextField from "@material-ui/core/TextField";
+import InputAdornment from "@material-ui/core/InputAdornment";
+
+import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
+import EditIcon from "@material-ui/icons/Edit";
+import MainContainer from "../../components/MainContainer";
+import MainHeader from "../../components/MainHeader";
+import MainHeaderButtonsWrapper from "../../components/MainHeaderButtonsWrapper";
+import Title from "../../components/Title";
+
+import api from "../../services/api";
+import { i18n } from "../../translate/i18n";
+import TableRowSkeleton from "../../components/TableRowSkeleton";
+import CategoryModal from "../../components/CategoryModal";
+import ConfirmationModal from "../../components/ConfirmationModal";
+import toastError from "../../errors/toastError";
+import { Chip } from "@material-ui/core";
+
+import { SocketContext } from "../../context/Socket/SocketContext";
+import { AuthContext } from "../../context/Auth/AuthContext";
+import StatusBudGetModal from "../../components/SatusBudGetModal";
+
+const reducer = (state, action) => {
+  if (action.type === "LOAD_STATUS_BUDGETS") {
+    const statusBudGets = action.payload;
+    const newStatusBudGet = [];
+
+    statusBudGets.forEach(statusBudGet => {
+      const statusBudGetIndex = state.findIndex(s => s.id === statusBudGet.id);
+      if (statusBudGetIndex !== -1) {
+        state[statusBudGetIndex] = statusBudGet;
+      } else {
+        newStatusBudGet.push(statusBudGet);
+      }
+    });
+
+    return [...state, ...newStatusBudGet];
+  }
+
+  if (action.type === "UPDATE_STATUS_BUDGETS") {
+    const statusBudGet = action.payload;
+    const statusBudGetIndex = state.findIndex(s => s.id === statusBudGet.id);
+
+    if (statusBudGetIndex !== -1) {
+      state[statusBudGetIndex] = statusBudGet;
+      return [...state];
+    } else {
+      return [statusBudGet, ...state];
+    }
+  }
+
+  if (action.type === "DELETE_STATUS_DUDGETS") {
+    const statusBudGetId = action.payload;
+
+    const statusBudGetIndex = state.findIndex(s => s.id === statusBudGetId);
+    if (statusBudGetIndex !== -1) {
+      state.splice(statusBudGetIndex, 1);
+    }
+    return [...state];
+  }
+
+  if (action.type === "RESET") {
+    return [];
+  }
+};
+
+const useStyles = makeStyles(theme => ({
+  mainPaper: {
+    flex: 1,
+    padding: theme.spacing(1),
+    overflowY: "scroll",
+    ...theme.scrollbarStyles
+  }
+}));
+
+const StatusBudGet = () => {
+  const classes = useStyles();
+
+  const { user } = useContext(AuthContext);
+
+  const [loading, setLoading] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [selectedStatusBudGet, setSelectedStatusBudGet] = useState(null);
+  const [deletingStatusBudGet, setDeletingStatusBudGet] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [searchParam, setSearchParam] = useState("");
+  const [statusBudGets, dispatch] = useReducer(reducer, []);
+  const [statusBudGetModalOpen, setStatusBudGetModalOpen] = useState(false);
+
+  const fetchStatusBudGet = useCallback(async () => {
+    try {
+      const { data } = await api.get("/statusBudGets/", {
+        params: { searchParam, pageNumber }
+      });
+      dispatch({ type: "LOAD_STATUS_BUDGETS", payload: data.statusBudGets });
+      setHasMore(data.hasMore);
+      setLoading(false);
+    } catch (err) {
+      toastError(err);
+    }
+  }, [searchParam, pageNumber]);
+
+  const socketManager = useContext(SocketContext);
+
+  useEffect(() => {
+    dispatch({ type: "RESET" });
+    setPageNumber(1);
+  }, [searchParam]);
+
+  useEffect(() => {
+    setLoading(true);
+    const delayDebounceFn = setTimeout(() => {
+      fetchStatusBudGet();
+    }, 500);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchParam, pageNumber, fetchStatusBudGet]);
+
+  useEffect(() => {
+    const socket = socketManager.getSocket(user.companyId);
+
+    socket.on("user", data => {
+      if (data.action === "update" || data.action === "create") {
+        dispatch({ type: "UPDATE_STATUS_BUDGETS", payload: data.statusBudGets });
+      }
+
+      if (data.action === "delete") {
+        dispatch({ type: "DELETE_STATUS_DUDGETS", payload: +data.statusBudGetId });
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [socketManager, user]);
+
+  const handleOpenStatusBudGetModal = () => {
+    setSelectedStatusBudGet(null);
+    setStatusBudGetModalOpen(true);
+  };
+
+  const handleCloseStatusBudGetModal = () => {
+    setSelectedStatusBudGet(null);
+    setStatusBudGetModalOpen(false);
+  };
+
+  const handleSearch = event => {
+    setSearchParam(event.target.value.toLowerCase());
+  };
+
+  const handleEditStatusBudGet = statusBudGet => {
+    setSelectedStatusBudGet(statusBudGet);
+    setStatusBudGetModalOpen(true);
+  };
+
+  const handleDeleteStatusBudGet = async statusBudGetId => {
+    try {
+      await api.delete(`/statusBudGets/${statusBudGetId}`);
+      toast.success(i18n.t("statusBudGets.toasts.deleted"));
+    } catch (err) {
+      toastError(err);
+    }
+    setDeletingStatusBudGet(null);
+    setSearchParam("");
+    setPageNumber(1);
+
+    dispatch({ type: "RESET" });
+    setPageNumber(1);
+    await fetchStatusBudGet();
+  };
+
+  const loadMore = () => {
+    setPageNumber(prevState => prevState + 1);
+  };
+
+  const handleScroll = e => {
+    if (!hasMore || loading) return;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - (scrollTop + 100) < clientHeight) {
+      loadMore();
+    }
+  };
+
+  return (
+    <MainContainer>
+      <ConfirmationModal
+        title={
+          deletingStatusBudGet &&
+          `${i18n.t("statusBudGets.confirmationModal.deleteTitle")}`
+        }
+        open={confirmModalOpen}
+        onClose={setConfirmModalOpen}
+        onConfirm={() => handleDeleteStatusBudGet(deletingStatusBudGet.id)}
+      >
+        {i18n.t("statusBudGets.confirmationModal.deleteMessage")}
+      </ConfirmationModal>
+      <StatusBudGetModal
+        open={statusBudGetModalOpen}
+        onClose={handleCloseStatusBudGetModal}
+        reload={fetchStatusBudGet}
+        aria-labelledby="form-dialog-title"
+        statusBudGetId={selectedStatusBudGet && selectedStatusBudGet.id}
+      />
+      <MainHeader>
+        <Title>{i18n.t("statusBudGets.title")}</Title>
+        <MainHeaderButtonsWrapper>
+          <TextField
+            placeholder={i18n.t("contacts.searchPlaceholder")}
+            type="search"
+            value={searchParam}
+            onChange={handleSearch}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon style={{ color: "gray" }} />
+                </InputAdornment>
+              )
+            }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleOpenStatusBudGetModal}
+          >
+            {i18n.t("statusBudGets.buttons.add")}
+          </Button>
+        </MainHeaderButtonsWrapper>
+      </MainHeader>
+      <Paper
+        className={classes.mainPaper}
+        variant="outlined"
+        onScroll={handleScroll}
+      >
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell align="center">
+                {i18n.t("statusBudGets.table.code")}
+              </TableCell>
+              <TableCell align="center">
+                {i18n.t("statusBudGets.table.name")}
+              </TableCell>
+
+              <TableCell align="center">
+                {i18n.t("statusBudGets.table.actions")}
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <>
+              {statusBudGets.map(statusBudGet => (
+                <TableRow key={statusBudGet.id}>
+                  <TableCell align="center">{statusBudGet.code}</TableCell>
+                  <TableCell align="center">{statusBudGet.name}</TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      size="small"
+                      onClick={() => handleEditStatusBudGet(statusBudGet)}
+                    >
+                      <EditIcon />
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      onClick={e => {
+                        setConfirmModalOpen(true);
+                        setDeletingStatusBudGet(statusBudGet);
+                      }}
+                    >
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {loading && <TableRowSkeleton columns={3} />}
+            </>
+          </TableBody>
+        </Table>
+      </Paper>
+    </MainContainer>
+  );
+};
+
+export default StatusBudGet;

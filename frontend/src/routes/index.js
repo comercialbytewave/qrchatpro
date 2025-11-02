@@ -55,6 +55,7 @@ import Products from "../pages/Products";
 import Portifolios from "../pages/Portifolios";
 import Customers from "../pages/Customers";
 import Payments from "../pages/Payments";
+import StatusBudgets from "../pages/StatusBudGets";
 
 const Routes = () => {
   const [showCampaigns, setShowCampaigns] = useState(false);
@@ -102,6 +103,8 @@ const Routes = () => {
                 <Route exact path="/portifolios" component={Portifolios} isPrivate />
                 <Route exact path="/customers" component={Customers} isPrivate />
                 <Route exact path="/payments" component={Payments} isPrivate />
+                <Route exact path="/statusBudGets" component={StatusBudgets} isPrivate />
+                
                 
                 <Route
                   exact

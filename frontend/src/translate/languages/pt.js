@@ -515,6 +515,22 @@ const messages = {
         },
         success: "Produto salvo com sucesso."
       },
+      statusBudGetModal: {
+        form: {
+          code: "Código",
+          name: "Nome",          
+        },
+        success: "Status salvo com sucesso!",
+        title: {
+          add: "Adicionar Status",
+          edit: "Editar Status"
+        },
+        buttons: {
+          okAdd: "Adicionar",
+          okEdit: "Salvar",
+          cancel: "Cancelar"
+        }
+      },
       whatsappModal: {
         title: {
           add: "Adicionar Conexão",
@@ -1160,6 +1176,7 @@ const messages = {
           categories: "Categorias",
           administration: "Administração",
           paymentMethods: "Formas de pagamento",
+          statusBudGets: "Status Pedido",
           companies: "Empresas",
           users: "Usuários",
           settings: "Configurações",
@@ -1449,6 +1466,28 @@ const messages = {
         },
         toasts: {
           deleted: "Registro excluído"
+        }
+      },
+      statusBudGets: {
+        title: "Status",
+        confirmationModal: {
+          deleteTitle: "Você tem certeza que quer excluir esta status?",
+          deleteMessage: "Esta ação não pode ser revertida."
+        },
+        searchPlaceholder: "Pesquisa...",
+        table: {
+          code: "Código",
+          name: "Nome",
+          isActive: "Ativo",
+          actions: "Ações"
+        },
+        buttons: {
+          add: "Nova Status",
+          attach: "Upload de Imagem"
+
+        },
+        toasts: {
+          deleted: "Status excluído com sucesso."
         }
       },
       kanban: {
