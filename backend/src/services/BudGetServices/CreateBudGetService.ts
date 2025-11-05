@@ -1,16 +1,61 @@
 // src/services/BudGetServices/CreateBudGetService.ts
 import * as Yup from "yup";
 import AppError from "../../errors/AppError";
-import { IBudGet, IBudGetItens } from "../../database/interfaces/IBudget";
 import StatusBudGets from "../../models/StatusBudGets";
 import Customer from "../../models/Customer";
 import CustomerAddress from "../../models/CustomerAddress";
-import Product from "../../models/Product";
 import BudGets from "../../models/BudGet";
 import BudGetItens from "../../models/BudGetItem";
 import BudGetNegociations from "../../models/BudGetNegociation";
 import BudGetAdressRouters from "../../models/BudGetAdressRouter";
 import { da } from "date-fns/locale";
+
+export interface IBudGetFinance {
+  method: {
+    id: number;
+    code: string;
+    name: string;
+    typePaymentId: number;
+    companyId: number;
+    typePayment: {
+      id: number;
+      code: string;
+      change: boolean;
+      installments: boolean;
+    }
+  };
+  value: number;
+  change: number;
+  installments: number;
+}
+export interface IBudGetItens {
+  name: string;
+  price: number;
+  amount: number;
+  total: number;
+  productId: number;
+  mediaPath: string;
+  mediaName: string;
+  budGetId?: number;
+}
+export interface IBudGet {
+  storeId: number;
+  storeName: string;
+  customerId: number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;  
+  sellerId: number;
+  ticketId: number;
+  itens: IBudGetItens[];
+  typeDelivery: string;
+  number?: string;
+  addressId: number;
+  coupon: string;
+  total: number;
+  payments: IBudGetFinance[];
+  observation: string;  
+}
 
 interface Request {
   data: IBudGet;

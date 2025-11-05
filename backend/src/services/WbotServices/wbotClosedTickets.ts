@@ -63,7 +63,8 @@ const handleOpenTickets = async (companyId: number, whatsapp: Whatsapp) => {
       }
 
       const ticketsForInactiveMessage = await Ticket.findAll({
-        where:  whereCondition1 
+        where:  whereCondition1,
+        include: ["contact"] 
       });
 
       if (ticketsForInactiveMessage && ticketsForInactiveMessage.length > 0) {
@@ -111,7 +112,8 @@ const handleOpenTickets = async (companyId: number, whatsapp: Whatsapp) => {
     }
 
     const ticketsToClose = await Ticket.findAll({
-      where: whereCondition
+      where: whereCondition,
+      include: ["contact"]
     });
 
 
@@ -166,7 +168,8 @@ const handleNPSTickets = async (companyId: number, whatsapp: any) => {
       whatsappId: whatsapp.id,
       updatedAt: { [Op.lt]: dataLimite.toDate() },
       imported: null
-    }
+    },
+    include: ["contact"]
   });
 
   if (ticketsToClose && ticketsToClose.length > 0) {

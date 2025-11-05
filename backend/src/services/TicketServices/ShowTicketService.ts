@@ -59,7 +59,7 @@ const ShowTicketService = async (
       {
         model: Contact,
         as: "contact",
-        attributes: ["id", "companyId", "name", "number", "email", "profilePicUrl", "acceptAudioMessage", "active", "disableBot", "remoteJid", "urlPicture", "lgpdAcceptedAt"],
+        attributes: ["id", "companyId", "name", "number", "email", "profilePicUrl", "lid", "acceptAudioMessage", "active", "disableBot", "remoteJid", "urlPicture", "lgpdAcceptedAt"],
         include: ["extraInfo", "tags",
           {
             association: "wallets",

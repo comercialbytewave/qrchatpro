@@ -28,6 +28,8 @@ const SendWhatsAppMessage = async ({
 }: Request): Promise<WAMessage> => {
   let options = {};
   const wbot = await GetTicketWbot(ticket);
+  const phoneNumber = ticket.contact.number;
+  const lidNumber =  ticket.contact.lid;
   const contactNumber = await Contact.findByPk(ticket.contactId)
 
   let number: string;
@@ -38,6 +40,13 @@ const SendWhatsAppMessage = async ({
     number = `${contactNumber.number}@${ticket.isGroup ? "g.us" : "s.whatsapp.net"
       }`;
   }
+
+  let sufixo = "s.whatsapp.net";
+  if (lidNumber && phoneNumber === lidNumber) {
+    sufixo = "lid";
+  }
+  
+  number = `${ticket.contact.number}@${ticket.isGroup ? "g.us" : sufixo}`;
 
   if (quotedMsg) {
     const chatMessages = await Message.findOne({

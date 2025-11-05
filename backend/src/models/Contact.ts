@@ -40,6 +40,10 @@ class Contact extends Model<Contact> {
   @Column
   number: string;
 
+  @AllowNull(true)
+  @Column
+  lid: string;
+
   @AllowNull(false)
   @Default("")
   @Column

@@ -107,6 +107,8 @@ type Session = WASocket & {
   id?: number;
 };
 
+type JSONObject = Record<string, any>;
+
 interface ImessageUpsert {
   messages: WAMessage[];
   type: MessageUpsertType;
@@ -115,6 +117,7 @@ interface ImessageUpsert {
 interface IMe {
   name: string;
   id: string;
+  lid?: string;
 }
 
 interface SessionOpenAi extends OpenAI {
@@ -231,37 +234,38 @@ export const getBodyMessage = (msg: WAMessage): string | null => {
     if (type === undefined) console.log(JSON.stringify(msg))
 
     const types = {
-      conversation: msg.message?.conversation,
+      conversation: msg?.message?.conversation,
+      editedMessage: msg?.message?.editedMessage?.message?.protocolMessage?.editedMessage?.conversation,
       imageMessage: msg.message?.imageMessage?.caption,
       videoMessage: msg.message?.videoMessage?.caption,
-      extendedTextMessage: msg?.message?.extendedTextMessage?.text,
-      buttonsResponseMessage: msg.message?.buttonsResponseMessage?.selectedDisplayText,
-      listResponseMessage: msg.message?.listResponseMessage?.title || msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+      extendedTextMessage: msg.message?.extendedTextMessage?.text,
+      buttonsResponseMessage: msg.message?.buttonsResponseMessage?.selectedButtonId,
       templateButtonReplyMessage: msg.message?.templateButtonReplyMessage?.selectedId,
       messageContextInfo: msg.message?.buttonsResponseMessage?.selectedButtonId || msg.message?.listResponseMessage?.title,
-      buttonsMessage: getBodyButton(msg) || msg.message?.listResponseMessage?.title,
+      buttonsMessage: getBodyButton(msg) || msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
+      viewOnceMessage: getBodyButton(msg) || msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
       stickerMessage: "sticker",
       contactMessage: msg.message?.contactMessage?.vcard,
-      contactsArrayMessage: (msg.message?.contactsArrayMessage?.contacts) && contactsArrayMessageGet(msg),
+      contactsArrayMessage: "varios contatos",
       //locationMessage: `Latitude: ${msg.message.locationMessage?.degreesLatitude} - Longitude: ${msg.message.locationMessage?.degreesLongitude}`,
-      locationMessage: msgLocation(msg.message?.locationMessage?.jpegThumbnail, msg.message?.locationMessage?.degreesLatitude, msg.message?.locationMessage?.degreesLongitude),
+      locationMessage: msgLocation(
+        msg.message?.locationMessage?.jpegThumbnail,
+        msg.message?.locationMessage?.degreesLatitude,
+        msg.message?.locationMessage?.degreesLongitude
+      ),
       liveLocationMessage: `Latitude: ${msg.message?.liveLocationMessage?.degreesLatitude} - Longitude: ${msg.message?.liveLocationMessage?.degreesLongitude}`,
-      documentMessage: msg.message?.documentMessage?.caption,
+      documentMessage: msg.message?.documentMessage?.title,
+      documentWithCaptionMessage: msg.message?.documentWithCaptionMessage?.message?.documentMessage?.caption,
       audioMessage: "Áudio",
       listMessage: getBodyButton(msg) || msg.message?.listResponseMessage?.title,
-      viewOnceMessage: getBodyButton(msg),
+      listResponseMessage: msg.message?.listResponseMessage?.singleSelectReply?.selectedRowId,
       reactionMessage: msg.message?.reactionMessage?.text || "reaction",
-      senderKeyDistributionMessage: msg?.message?.senderKeyDistributionMessage?.axolotlSenderKeyDistributionMessage,
-      documentWithCaptionMessage: msg.message?.documentWithCaptionMessage?.message?.documentMessage?.caption,
-      viewOnceMessageV2: msg.message?.viewOnceMessageV2?.message?.imageMessage?.caption,
-      editedMessage:
-        msg?.message?.protocolMessage?.editedMessage?.conversation ||
-        msg?.message?.editedMessage?.message?.protocolMessage?.editedMessage?.conversation,
-      ephemeralMessage: msg.message?.ephemeralMessage?.message?.extendedTextMessage?.text,
-      imageWhitCaptionMessage: msg?.message?.ephemeralMessage?.message?.imageMessage,
-      highlyStructuredMessage: msg.message?.highlyStructuredMessage,
-      protocolMessage: msg?.message?.protocolMessage?.editedMessage?.conversation,
-      advertising: getAd(msg) || msg.message?.listResponseMessage?.contextInfo?.externalAdReply?.title,
+      ephemeralMessage:
+        msg?.message?.ephemeralMessage?.message?.extendedTextMessage?.text ||
+        msg?.message?.ephemeralMessage?.message?.imageMessage?.caption ||
+        msg?.message?.ephemeralMessage?.message?.videoMessage?.caption ||
+        msg?.message?.ephemeralMessage?.message?.contactMessage?.vcard ||
+        msg?.message?.ephemeralMessage?.message?.documentWithCaptionMessage?.message?.documentMessage?.caption
     };
 
     const objKey = Object.keys(types).find(key => key === type);
@@ -327,19 +331,110 @@ const getSenderMessage = (
   return senderId && jidNormalizedUser(senderId);
 };
 
+
+const validateBrazilMobile = async (input: string) => {
+  if (input == null) {
+    return { valid: false, e164: null, reason: "input is null or undefined" };
+  }
+
+  const digits = String(input).replace(/\D+/g, "");
+
+  // Aceita 10, 11, 12, 13 dígitos
+  if (![10, 11, 12, 13].includes(digits.length)) {
+    return {
+      valid: false,
+      e164: null,
+      reason: `invalid length (${digits.length})`
+    };
+  }
+
+  let rest = digits;
+  let hasCountry = false;
+
+  if (digits.startsWith("55")) {
+    hasCountry = true;
+    rest = digits.slice(2);
+  }
+
+  // rest deve conter DDD + subscriber
+  if (rest.length < 10 || rest.length > 11) {
+    return {
+      valid: false,
+      e164: null,
+      reason: "unexpected length after parsing"
+    };
+  }
+
+  const ddd = rest.slice(0, 2);
+  let subscriber = rest.slice(2);
+
+  // Valida DDD
+  if (!/^[1-9][0-9]$/.test(ddd)) {
+    return { valid: false, e164: null, reason: `invalid DDD '${ddd}'` };
+  }
+
+  // Detecta se faltou o 9 e adiciona virtualmente
+  if (subscriber.length === 8) {
+    subscriber = "9" + subscriber;
+  } else if (subscriber.length !== 9) {
+    return { valid: false, e164: null, reason: "invalid subscriber length" };
+  }
+
+  // Monta E.164 final
+  const e164 = `+55${ddd}${subscriber}`;
+
+  return { valid: true, e164, reason: null };
+};
 const getContactMessage = async (msg: WAMessage, wbot: Session) => {
+  const { remoteJid, remoteJidAlt, addressingMode, participant, participantAlt, fromMe } = msg.key || {};
   const isGroup = msg.key.remoteJid.includes("g.us");
-  const rawNumber = msg.key.remoteJid.replace(/\D/g, "");
+  let rawNumber = msg.key.remoteJid.replace(/\D/g, "");
+  let rawNumberAlt = remoteJidAlt?.replace(/\D/g, "");
+
+  if (isGroup) {
+    rawNumber = participantAlt.replace(/\D/g, "");
+    rawNumberAlt = participant.replace(/\D/g, "");
+  }
+  const getValidatedContact = async () => {
+    if (addressingMode !== "lid") return null;
+
+    const [validMain, validAlt] = await Promise.all([validateBrazilMobile(rawNumber), validateBrazilMobile(rawNumberAlt)]);
+
+    if (validMain?.valid) {
+      return {
+        id: remoteJid,
+        name: msg.pushName,
+        lid: remoteJidAlt
+      };
+    }
+
+    if (validAlt?.valid) {
+      return {
+        id: remoteJidAlt,
+        name: fromMe ? validAlt.e164 : msg.pushName,
+        lid: remoteJid
+      };
+    }
+
+    return null;
+  };
+
+  const validated = await getValidatedContact();
+  if (validated) return validated;
+
   return isGroup
     ? {
       id: getSenderMessage(msg, wbot),
-      name: msg.pushName
+      name: msg.pushName,
+      lid: remoteJidAlt
     }
     : {
       id: msg.key.remoteJid,
-      name: msg.key.fromMe ? rawNumber : msg.pushName
+      name: msg.key.fromMe ? rawNumber : msg.pushName,
+      lid: remoteJidAlt
     };
 };
+
 
 function findCaption(obj) {
   if (typeof obj !== 'object' || obj === null) {
@@ -591,6 +686,7 @@ const verifyContact = async (
   const contactData = {
     name: msgContact.name || msgContact.id.replace(/\D/g, ""),
     number: msgContact.id.replace(/\D/g, ""),
+    lid: msgContact.lid,
     profilePicUrl,
     isGroup: msgContact.id.includes("g.us"),
     companyId,
@@ -606,6 +702,120 @@ const verifyContact = async (
   const contact = await CreateOrUpdateContactService(contactData);
 
   return contact;
+};
+
+export const hasStatusBroadcast = (msg: JSONObject): boolean => {
+  if (!msg) return false;
+
+  // Verificação direta
+  if (msg?.key?.remoteJid === "status@broadcast") return true;
+
+  // Busca recursiva no JSON
+  const search = (obj: JSONObject): boolean => {
+    for (const key in obj) {
+      const value = obj[key];
+
+      if (key === "remoteJid" && value === "status@broadcast") {
+        return true;
+      }
+
+      if (value && typeof value === "object") {
+        if (search(value)) return true;
+      }
+    }
+    return false;
+  };
+
+  return search(msg);
+};
+
+
+export const downloadMediaStatus = async (msg: WAMessage, isImported: Boolean = false, wbot: Session) => {
+  // 🔄 Corrige URLs quebradas (sticker e quoted)
+  if (msg.message?.stickerMessage || msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage) {
+    const urlAnt = "https://web.whatsapp.net";
+    const newUrl = "https://mmg.whatsapp.net";
+
+    // Sticker
+    const directPath = msg.message?.stickerMessage?.directPath;
+    if (directPath && msg.message?.stickerMessage?.url?.includes(urlAnt)) {
+      msg.message.stickerMessage.url = msg.message.stickerMessage.url.replace(urlAnt, newUrl + directPath);
+    }
+
+    // Quoted Image
+    const quotedImageMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    if (quotedImageMessage?.directPath && quotedImageMessage?.url?.includes(urlAnt)) {
+      quotedImageMessage.url = quotedImageMessage.url.replace(urlAnt, newUrl + quotedImageMessage.directPath);
+    }
+  }
+
+  let buffer: Buffer | null = null;
+
+  try {
+    buffer = await downloadMediaMessage(
+      msg,
+      "buffer",
+      {},
+      {
+        logger,
+        reuploadRequest: wbot.updateMediaMessage
+      }
+    );
+  } catch (err) {
+    if (!isImported) console.error("❌ Erro ao baixar mídia:", err?.message || err);
+  }
+
+  // ⛑️ Fallback: tentar baixar mídia citada manualmente
+  if (!buffer) {
+    try {
+      const quotedImageMessage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+      if (quotedImageMessage) {
+        const stream = await downloadContentFromMessage(quotedImageMessage, "image");
+        const chunks: Uint8Array[] = [];
+        for await (const chunk of stream) chunks.push(chunk);
+        buffer = Buffer.concat(chunks);
+      }
+    } catch (err) {
+      console.error("⚠️ Falha no fallback de download da mídia citada:", err?.message);
+    }
+  }
+
+  if (!buffer) {
+    console.warn("⚠️ Nenhum conteúdo de mídia encontrado.");
+    return {
+      data: buffer,
+      mimetype: "application/octet-stream",
+      filename: null
+    };
+  }
+
+  // 🔍 Detecta tipo MIME
+  const mineType =
+    msg.message?.imageMessage ||
+    msg.message?.audioMessage ||
+    msg.message?.videoMessage ||
+    msg.message?.stickerMessage ||
+    msg.message?.documentMessage ||
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+
+  if (!mineType?.mimetype) {
+    console.warn("⚠️ Mídia sem mimetype válido.");
+    return {
+      data: buffer,
+      mimetype: mineType.mimetype,
+      filename: null
+    };
+  }
+
+  // 📁 Define nome do arquivo
+  const ext = mineType.mimetype.split("/")[1]?.split(";")[0] || "bin";
+  const filename = `${Date.now()}.${ext}`;
+
+  return {
+    data: buffer,
+    mimetype: mineType.mimetype,
+    filename
+  };
 };
 
 const verifyQuotedMessage = async (
@@ -625,6 +835,71 @@ const verifyQuotedMessage = async (
   return quotedMsg;
 };
 
+
+const downloadMediaAnterior = async (msg: WAMessage, wbot: Session, isQuotedMsg?: boolean) => {
+  let buffer;
+  if (!isQuotedMsg) {
+    try {
+      buffer = await downloadMediaMessage(
+        msg,
+        "buffer",
+        {},
+        {
+          logger,
+          reuploadRequest: wbot.updateMediaMessage
+        }
+      );
+    } catch (err) {
+      console.error("❌ Erro ao baixar mídia:", err?.message || err);
+      //console.error("Erro ao baixar mídia:", err);
+      // Trate o erro de acordo com as suas necessidades
+    }
+  }
+  console.log("bu", buffer);
+  let filename = msg.message?.documentMessage?.fileName || "";
+  const mineType =
+    msg.message?.imageMessage ||
+    msg.message?.audioMessage ||
+    msg.message?.videoMessage ||
+    msg.message?.stickerMessage ||
+    msg.message?.documentMessage ||
+    msg.message?.documentWithCaptionMessage?.message?.documentMessage ||
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage ||
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage ||
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage ||
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.audioMessage ||
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.documentMessage ||
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.documentWithCaptionMessage?.message?.documentMessage ||
+    msg.message?.extendedTextMessage?.contextInfo.quotedMessage.extendedTextMessage ||
+    msg.message?.ephemeralMessage?.message?.imageMessage ||
+    msg.message?.ephemeralMessage?.message?.videoMessage ||
+    msg.message?.ephemeralMessage?.message?.audioMessage ||
+    msg.message?.ephemeralMessage?.message?.documentWithCaptionMessage?.message?.documentMessage ||
+    msg.message?.ephemeralMessage?.message?.documentMessage;
+
+  if (!mineType || typeof mineType !== "object" || !("mimetype" in mineType)) {
+    // Retorna seguro caso o tipo não tenha mimetype
+    return { data: "error", mimetype: "", filename: "" };
+  }
+  // if (!mineType) console.log(JSON.stringify(msg));
+  console.log("mineType", mineType);
+  if (mineType === undefined) {
+    return { data: "error", mimetype: "", filename: "" };
+  }
+  if (!filename) {
+    const ext = mineType?.mimetype.split("/")[1].split(";")[0];
+    filename = `${new Date().getTime()}.${ext}`;
+  } else {
+    filename = `${new Date().getTime()}_${filename}`;
+  }
+  const media = {
+    data: buffer,
+    mimetype: mineType.mimetype,
+    filename
+  };
+  return media;
+};
+
 export const verifyMediaMessage = async (
   msg: WAMessage,
   ticket: Ticket,
@@ -636,10 +911,19 @@ export const verifyMediaMessage = async (
 ): Promise<Message> => {
   const io = getIO();
   const quotedMsg = await verifyQuotedMessage(msg);
+  const statusWhasappMessage = await hasStatusBroadcast(msg);
   const companyId = ticket.companyId;
 
   try {
-    const media = await downloadMedia(msg, ticket?.imported, wbot);
+    let media = await downloadMedia(msg, ticket?.imported, wbot);
+
+    if (statusWhasappMessage) {
+      media = await downloadMediaStatus(msg, !!quotedMsg, wbot);
+    } else if ((quotedMsg && !media) || !media.data) {
+      media = await downloadMediaAnterior(msg, wbot, !!quotedMsg);
+    } else if (media.data === undefined || media.data === null || !media) {
+      throw new Error("ERR_WAPP_DOWNLOAD_MEDIA");
+    }
 
     if (!media && ticket.imported) {
       const body =

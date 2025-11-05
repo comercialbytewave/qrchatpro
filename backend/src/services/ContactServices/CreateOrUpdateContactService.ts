@@ -8,6 +8,7 @@ import logger from "../../utils/logger";
 import { isNil } from "lodash";
 import Whatsapp from "../../models/Whatsapp";
 import * as Sentry from "@sentry/node";
+import { Op } from "sequelize";
 
 const axios = require('axios');
 
@@ -19,6 +20,7 @@ interface ExtraInfo extends ContactCustomField {
 interface Request {
   name: string;
   number: string;
+  lid?: string | null;
   isGroup: boolean;
   email?: string;
   profilePicUrl?: string;
@@ -68,6 +70,7 @@ const downloadProfileImage = async ({
 const CreateOrUpdateContactService = async ({
   name,
   number: rawNumber,
+  lid,
   profilePicUrl,
   isGroup,
   email = "",
@@ -87,12 +90,17 @@ const CreateOrUpdateContactService = async ({
     let contact: Contact | null;
 
     contact = await Contact.findOne({
-      where: { number, companyId }
+      where: {
+        number,
+        companyId,
+        [Op.or]: [lid ? { lid } : {}, { number }]
+      }
     });
 
     let updateImage = (!contact || contact?.profilePicUrl !== profilePicUrl && profilePicUrl !== "") && wbot || false;
 
     if (contact) {
+      const dataUpdate: any = { profilePicUrl, lid: lid || contact.lid };
       contact.remoteJid = remoteJid;
       contact.profilePicUrl = profilePicUrl || null;
       contact.isGroup = isGroup;
@@ -127,10 +135,15 @@ const CreateOrUpdateContactService = async ({
         }
       }
 
-      if (contact.name === number) {
-        contact.name = name;
+      if (contact.number === lid && lid !== number) {
+        dataUpdate.number = number;
       }
-
+  
+      if (contact.name === contact.lid && name !== contact.name) {
+        dataUpdate.name = name;
+      }
+      
+      await contact.update(dataUpdate);
       await contact.save(); // Ensure save() is called to trigger updatedAt
       await contact.reload();
 
@@ -153,6 +166,7 @@ const CreateOrUpdateContactService = async ({
       contact = await Contact.create({
         name,
         number,
+        lid,
         email,
         isGroup,
         companyId,
@@ -170,6 +184,7 @@ const CreateOrUpdateContactService = async ({
       contact = await Contact.create({
         name,
         number,
+        lid,
         email,
         isGroup,
         companyId,

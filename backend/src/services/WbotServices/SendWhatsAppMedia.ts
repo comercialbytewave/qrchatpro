@@ -12,6 +12,9 @@ import Contact from "../../models/Contact";
 import { getWbot } from "../../libs/wbot";
 import CreateMessageService from "../MessageServices/CreateMessageService";
 import formatBody from "../../helpers/Mustache";
+import ffmpeg from "fluent-ffmpeg";
+
+ffmpeg.setFfmpegPath(ffmpegPath.path);
 interface Request {
   media: Express.Multer.File;
   ticket: Ticket;
@@ -37,17 +40,23 @@ const os = require("os");
 const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
 
 const processAudio = async (audio: string, companyId: string): Promise<string> => {
-  const outputAudio = `${publicFolder}/company${companyId}/${new Date().getTime()}.mp3`;
+  const outputAudio = `${publicFolder}/company${companyId}/${Date.now()}.mp3`;
+
   return new Promise((resolve, reject) => {
-    exec(
-      `${ffmpegPath.path} -i ${audio}  -vn -ar 44100 -ac 2 -b:a 192k ${outputAudio} -y`,
-      (error, _stdout, _stderr) => {
-        if (error) reject(error);
-        // fs.unlinkSync(audio);
-        resolve(outputAudio);
+    // Adiciona aspas em cada caminho
+    const command = `"${ffmpegPath.path}" -i "${audio}" -vn -ar 44100 -ac 2 -b:a 192k "${outputAudio}" -y`;
+
+    console.log("Executando comando:", command);
+
+    exec(command, (error, _stdout, _stderr) => {
+      if (error) {
+        console.error("Erro no FFmpeg:", error);
+        return reject(error);
       }
-    );
+      resolve(outputAudio);
+    });
   });
+};
   // return new Promise((resolve, reject) => {
   //   exec(
   //     `${ffmpegPath} -i ${audio} -vn -ab 128k -ar 44100 -f ipod ${outputAudio} -y`,
@@ -58,7 +67,7 @@ const processAudio = async (audio: string, companyId: string): Promise<string> =
   //     }
   //   );
   // });
-};
+//};
 
 const processAudioFile = async (audio: string, companyId: string): Promise<string> => {
   const outputAudio = `${publicFolder}/company${companyId}/${new Date().getTime()}.mp3`;
