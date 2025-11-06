@@ -392,8 +392,8 @@ const getContactMessage = async (msg: WAMessage, wbot: Session) => {
   let rawNumberAlt = remoteJidAlt?.replace(/\D/g, "");
 
   if (isGroup) {
-    rawNumber = participantAlt.replace(/\D/g, "");
-    rawNumberAlt = participant.replace(/\D/g, "");
+    rawNumber = participantAlt ? participantAlt.replace(/\D/g, "") :  remoteJid.replace(/\D/g, "")
+    rawNumberAlt = participant ? participant.replace(/\D/g, "") : remoteJidAlt?.replace(/\D/g, "");
   }
   const getValidatedContact = async () => {
     if (addressingMode !== "lid") return null;
