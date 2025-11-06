@@ -17,6 +17,7 @@ interface Request {
   status?: string;
   isDefault?: boolean;
   token?: string;
+  phoneNumberId?: string;
   provider?: string;
   facebookUserId?: string;
   facebookUserToken?: string;
@@ -67,6 +68,7 @@ const CreateWhatsAppService = async ({
   isDefault = false,
   companyId,
   token = "",
+  phoneNumberId,
   provider = "beta",
   facebookUserId,
   facebookUserToken,
@@ -203,6 +205,7 @@ const CreateWhatsAppService = async ({
       isDefault,
       companyId,
       token,
+      phoneNumberId,
       provider,
       channel,
       facebookUserId,

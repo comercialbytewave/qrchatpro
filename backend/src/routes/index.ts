@@ -6,8 +6,10 @@ import settingRoutes from "./settingRoutes";
 import contactRoutes from "./contactRoutes";
 import ticketRoutes from "./ticketRoutes";
 import whatsappRoutes from "./whatsappRoutes";
+import whatsappCloudRoutes from "./whatsappCloudRoutes";
 import messageRoutes from "./messageRoutes";
 import whatsappSessionRoutes from "./whatsappSessionRoutes";
+import whatsappCloudSessionRoutes from "./whatsappCloudSessionRoutes";
 import queueRoutes from "./queueRoutes";
 import companyRoutes from "./companyRoutes";
 import planRoutes from "./planRoutes";
@@ -67,9 +69,11 @@ routes.use(settingRoutes);
 routes.use(contactRoutes);
 routes.use(ticketRoutes);
 routes.use(whatsappRoutes);
+routes.use(whatsappCloudRoutes);
 routes.use(messageRoutes);
 routes.use(messageRoutes);
 routes.use(whatsappSessionRoutes);
+routes.use(whatsappCloudSessionRoutes);
 routes.use(queueRoutes);
 routes.use(companyRoutes);
 routes.use(planRoutes);
@@ -124,5 +128,7 @@ routes.use(typePaymentRoutes)
 routes.use(statusBudGetRoutes);
 routes.use(budGetRoutes);
 
+routes.use(whatsappCloudRoutes);
+routes.use(whatsappCloudSessionRoutes);
 
 export default routes;

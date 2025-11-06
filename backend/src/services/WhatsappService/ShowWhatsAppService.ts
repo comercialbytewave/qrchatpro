@@ -8,7 +8,7 @@ import { FlowBuilderModel } from "../../models/FlowBuilder";
 
 const ShowWhatsAppService = async (
   id: string | number,
-  companyId: number,
+  companyId: string | number,
   session?: any
 ): Promise<Whatsapp> => {
   const findOptions: FindOptions = {

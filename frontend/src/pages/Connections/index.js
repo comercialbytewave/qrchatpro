@@ -48,6 +48,7 @@ import TableRowSkeleton from "../../components/TableRowSkeleton";
 
 import api from "../../services/api";
 import WhatsAppModal from "../../components/WhatsAppModal";
+import WhatsAppCloudModal from "../../components/WhatsAppCloudModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
 import QrcodeModal from "../../components/QrcodeModal";
 import { i18n } from "../../translate/i18n";
@@ -136,13 +137,18 @@ const CustomToolTip = ({ title, content, children }) => {
   );
 };
 
-const IconChannel = (channel) => {
+const IconChannel = (channel, phoneNumberId) => {
   switch (channel) {
     case "facebook":
       return <Facebook style={{ color: "#3b5998" }} />;
     case "instagram":
       return <Instagram style={{ color: "#e1306c" }} />;
     case "whatsapp":
+    case "whatsapp-cloud":
+      // Se tiver phoneNumberId, é Cloud API
+      if (phoneNumberId) {
+        return <WhatsApp style={{ color: "#128C7E" }} title="WhatsApp Cloud API" />;
+      }
       return <WhatsApp style={{ color: "#25d366" }} />;
     default:
       return "error";
@@ -154,6 +160,7 @@ const Connections = () => {
 
   const { whatsApps, loading } = useContext(WhatsAppsContext);
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [whatsAppCloudModalOpen, setWhatsAppCloudModalOpen] = useState(false);
   const [statusImport, setStatusImport] = useState([]);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [selectedWhatsApp, setSelectedWhatsApp] = useState(null);
@@ -241,7 +248,15 @@ const Connections = () => {
 
   const handleStartWhatsAppSession = async (whatsAppId) => {
     try {
-      await api.post(`/whatsappsession/${whatsAppId}`);
+      // Verifica se é WhatsApp Cloud ou WhatsApp normal
+      const whatsApp = whatsApps?.find(w => w.id === whatsAppId);
+      const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
+      
+      if (isCloud) {
+        await api.post(`/whatsapp-cloud-session/${whatsAppId}`);
+      } else {
+        await api.post(`/whatsappsession/${whatsAppId}`);
+      }
     } catch (err) {
       toastError(err);
     }
@@ -249,7 +264,15 @@ const Connections = () => {
 
   const handleRequestNewQrCode = async (whatsAppId) => {
     try {
-      await api.put(`/whatsappsession/${whatsAppId}`);
+      // Verifica se é WhatsApp Cloud ou WhatsApp normal
+      const whatsApp = whatsApps?.find(w => w.id === whatsAppId);
+      const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
+      
+      if (isCloud) {
+        await api.put(`/whatsapp-cloud-session/${whatsAppId}`);
+      } else {
+        await api.put(`/whatsappsession/${whatsAppId}`);
+      }
     } catch (err) {
       toastError(err);
     }
@@ -259,6 +282,16 @@ const Connections = () => {
     setSelectedWhatsApp(null);
     setWhatsAppModalOpen(true);
   };
+
+  const handleOpenWhatsAppCloudModal = () => {
+    setSelectedWhatsApp(null);
+    setWhatsAppCloudModalOpen(true);
+  };
+
+  const handleCloseWhatsAppCloudModal = useCallback(() => {
+    setWhatsAppCloudModalOpen(false);
+    setSelectedWhatsApp(null);
+  }, [setSelectedWhatsApp, setWhatsAppCloudModalOpen]);
 
   const handleCloseWhatsAppModal = useCallback(() => {
     setWhatsAppModalOpen(false);
@@ -277,7 +310,13 @@ const Connections = () => {
 
   const handleEditWhatsApp = (whatsApp) => {
     setSelectedWhatsApp(whatsApp);
-    setWhatsAppModalOpen(true);
+    // Verifica se é WhatsApp Cloud
+    const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
+    if (isCloud) {
+      setWhatsAppCloudModalOpen(true);
+    } else {
+      setWhatsAppModalOpen(true);
+    }
   };
 
   const openInNewTab = url => {
@@ -316,7 +355,15 @@ const Connections = () => {
   const handleSubmitConfirmationModal = async () => {
     if (confirmModalInfo.action === "disconnect") {
       try {
-        await api.delete(`/whatsappsession/${confirmModalInfo.whatsAppId}`);
+        // Verifica se é WhatsApp Cloud
+        const whatsApp = whatsApps?.find(w => w.id === confirmModalInfo.whatsAppId);
+        const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
+        
+        if (isCloud) {
+          await api.delete(`/whatsapp-cloud-session/${confirmModalInfo.whatsAppId}`);
+        } else {
+          await api.delete(`/whatsappsession/${confirmModalInfo.whatsAppId}`);
+        }
       } catch (err) {
         toastError(err);
       }
@@ -324,7 +371,15 @@ const Connections = () => {
 
     if (confirmModalInfo.action === "delete") {
       try {
-        await api.delete(`/whatsapp/${confirmModalInfo.whatsAppId}`);
+        // Verifica se é WhatsApp Cloud
+        const whatsApp = whatsApps?.find(w => w.id === confirmModalInfo.whatsAppId);
+        const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
+        
+        if (isCloud) {
+          await api.delete(`/whatsapp-cloud/${confirmModalInfo.whatsAppId}`);
+        } else {
+          await api.delete(`/whatsapp/${confirmModalInfo.whatsAppId}`);
+        }
         toast.success(i18n.t("connections.toasts.deleted"));
       } catch (err) {
         toastError(err);
@@ -396,9 +451,12 @@ const Connections = () => {
   };
 
   const renderActionButtons = (whatsApp) => {
+    // Verifica se é WhatsApp Cloud
+    const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
+    
     return (
       <>
-        {whatsApp.status === "qrcode" && (
+        {whatsApp.status === "qrcode" && !isCloud && (
           <Can
             role={user.profile === "user" && user.allowConnections === "enabled" ? "admin" : user.profile}
             perform="connections-page:addConnection"
@@ -427,15 +485,17 @@ const Connections = () => {
                   onClick={() => handleStartWhatsAppSession(whatsApp.id)}
                 >
                   {i18n.t("connections.buttons.tryAgain")}
-                </Button>{" "}
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => handleRequestNewQrCode(whatsApp.id)}
-                >
-                  {i18n.t("connections.buttons.newQr")}
                 </Button>
+                {!isCloud && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => handleRequestNewQrCode(whatsApp.id)}
+                  >
+                    {i18n.t("connections.buttons.newQr")}
+                  </Button>
+                )}
               </>
             )}
           />
@@ -542,7 +602,12 @@ const Connections = () => {
       <WhatsAppModal
         open={whatsAppModalOpen}
         onClose={handleCloseWhatsAppModal}
-        whatsAppId={!qrModalOpen && selectedWhatsApp?.id}
+        whatsAppId={!qrModalOpen && selectedWhatsApp?.id && !selectedWhatsApp?.phoneNumberId ? selectedWhatsApp.id : null}
+      />
+      <WhatsAppCloudModal
+        open={whatsAppCloudModalOpen}
+        onClose={handleCloseWhatsAppCloudModal}
+        whatsAppId={!qrModalOpen && selectedWhatsApp?.id && selectedWhatsApp?.phoneNumberId ? selectedWhatsApp.id : null}
       />
       {user.profile === "user" && user.allowConnections === "disabled" ?
         <ForbiddenPage />
@@ -597,7 +662,24 @@ const Connections = () => {
                                   color: "#25D366",
                                 }}
                               />
-                              WhatsApp
+                              WhatsApp (Baileys)
+                            </MenuItem>
+                            {/* WHATSAPP CLOUD API */}
+                            <MenuItem
+                              disabled={planConfig?.plan?.useWhatsapp ? false : true}
+                              onClick={() => {
+                                handleOpenWhatsAppCloudModal();
+                                popupState.close();
+                              }}
+                            >
+                              <WhatsApp
+                                fontSize="small"
+                                style={{
+                                  marginRight: "10px",
+                                  color: "#25D366",
+                                }}
+                              />
+                              WhatsApp Cloud API
                             </MenuItem>
                             {/* FACEBOOK */}
                             <FacebookLogin
@@ -728,9 +810,9 @@ const Connections = () => {
                     {whatsApps?.length > 0 &&
                       whatsApps.map((whatsApp) => (
                         <TableRow key={whatsApp.id}>
-                          <TableCell align="center">{IconChannel(whatsApp.channel)}</TableCell>
+                          <TableCell align="center">{IconChannel(whatsApp.channel, whatsApp.phoneNumberId)}</TableCell>
                           <TableCell align="center">{whatsApp.name}</TableCell>
-                          <TableCell align="center">{whatsApp.number && whatsApp.channel === 'whatsapp' ? (<>{formatSerializedId(whatsApp.number)}</>) : whatsApp.number}</TableCell>
+                          <TableCell align="center">{whatsApp.number && whatsApp.channel === 'whatsapp' ? (<>{formatSerializedId(whatsApp.number)}</>) : whatsApp.number || whatsApp.phoneNumberId || '-'}</TableCell>
                           <TableCell align="center">{renderStatusToolTips(whatsApp)}</TableCell>
                           <TableCell align="center">{renderActionButtons(whatsApp)}</TableCell>
                           <TableCell align="center">{format(parseISO(whatsApp.updatedAt), "dd/MM/yy HH:mm")}</TableCell>

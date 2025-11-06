@@ -17,6 +17,7 @@ interface WhatsappData {
   outOfHoursMessage?: string;
   queueIds?: number[];
   token?: string;
+  phoneNumberId?: string;
   maxUseBotQueues?: number;
   timeUseBotQueues?: string;
   expiresTicket?: string;
@@ -74,6 +75,7 @@ const UpdateWhatsAppServiceAdmin = async ({
     outOfHoursMessage,
     queueIds = [],
     token,
+    phoneNumberId,
     maxUseBotQueues = 0,
     timeUseBotQueues = 0,
     expiresTicket = 0,
@@ -135,6 +137,7 @@ const UpdateWhatsAppServiceAdmin = async ({
     isDefault,
     companyId,
     token,
+    phoneNumberId,
     maxUseBotQueues: maxUseBotQueues || 0,
     timeUseBotQueues: timeUseBotQueues || 0,
     expiresTicket: expiresTicket || 0,

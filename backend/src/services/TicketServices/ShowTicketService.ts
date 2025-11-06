@@ -12,7 +12,7 @@ import TicketTag from "../../models/TicketTag";
 
 const ShowTicketService = async (
   id: string | number,
-  companyId: number
+  companyId: string | number
 ): Promise<Ticket> => {
   const ticket = await Ticket.findOne({
     where: {
