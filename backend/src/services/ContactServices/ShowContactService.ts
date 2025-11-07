@@ -1,13 +1,14 @@
 import Contact from "../../models/Contact";
 import AppError from "../../errors/AppError";
 import Whatsapp from "../../models/Whatsapp";
+import Customer from "../../models/Customer";
 
 const ShowContactService = async (
   id: string | number,
   companyId: number
 ): Promise<Contact> => {
   const contact = await Contact.findByPk(id, {
-    include: ["extraInfo", "tags",
+    include: ["extraInfo", "tags", "customer",
       {
         association: "wallets",
         attributes: ["id", "name"]
@@ -16,10 +17,6 @@ const ShowContactService = async (
         model: Whatsapp,
         as: "whatsapp",
         attributes: ["id", "name", "expiresTicket", "groupAsTicket" ]
-      },
-      {
-        association: "customer",
-        attributes: ["id", "document", "fullName", "email", "birthday", "portifolioId", "customerDefault"]
       },
     ]
   });

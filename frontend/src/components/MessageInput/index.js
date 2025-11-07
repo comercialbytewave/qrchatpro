@@ -64,6 +64,9 @@ import { EditMessageContext } from "../../context/EditingMessage/EditingMessageC
 import ScheduleModal from "../ScheduleModal";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 
+import { Search } from "@material-ui/icons";
+import SearchProductsByStore from "./SearchProductsByStore";
+
 
 const Mp3Recorder = new MicRecorder({ bitRate: 128 });
 

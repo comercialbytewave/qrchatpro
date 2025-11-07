@@ -2046,6 +2046,8 @@ const messages = {
             disableIntegration: "Desabilitar integração",
             logTicket: "Logs do Ticket",
             requiredTag: "Você deve atribuir uma tag antes de fechar o ticket.",
+            customer: "Clientes",
+            shoppCart: "Vendas",
           },
         },
       },
