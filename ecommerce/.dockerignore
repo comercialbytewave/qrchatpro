@@ -1,0 +1,39 @@
+README.md
+ 
+ 
+# Node modules locais (não copiar para a imagem)
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-lock.yaml
+ 
+# Arquivos de build locais
+.next
+out
+dist
+ 
+# Configurações de editor/IDE
+.vscode
+.idea
+*.sublime-workspace
+*.sublime-project
+ 
+# Git
+.git
+.gitignore
+ 
+# Logs e temp
+*.log
+*.tmp
+.DS_Store
+#.env
+.env.local
+.env.development
+.env.test
+.env.production.local
+ 
+# Testes
+coverage
+*.spec.ts
+*.test.ts
+*.test.js

@@ -51,6 +51,7 @@ type CompanyData = {
   document?: string;
   paymentMethod?: string;
   token?: string;
+  slug?: string;
 };
 
 type SchedulesData = {

@@ -9,7 +9,9 @@ import {
   ForeignKey,
   BelongsTo,
   DataType,
-  HasMany
+  HasMany,
+  Unique,
+  AllowNull
 } from "sequelize-typescript";
 import Contact from "./Contact";
 import Message from "./Message";
@@ -175,6 +177,11 @@ class Company extends Model<Company> {
     allowNull: true
   })
   token: string | null;
+
+  @AllowNull(true)
+  @Unique
+  @Column(DataType.STRING)
+  slug: string | null;
 }
 
 export default Company;

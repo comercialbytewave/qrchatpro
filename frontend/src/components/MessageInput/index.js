@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
-import { useMediaQuery, useTheme } from '@material-ui/core';
+import { useMediaQuery, useTheme } from "@material-ui/core";
 import { isNil } from "lodash";
 import {
   CircularProgress,
@@ -16,12 +16,7 @@ import {
   Tooltip,
   Fab,
 } from "@material-ui/core";
-import {
-  blue,
-  green,
-  pink,
-  grey,
-} from "@material-ui/core/colors";
+import { blue, green, pink, grey } from "@material-ui/core/colors";
 import {
   AttachFile,
   CheckCircleOutline,
@@ -66,7 +61,6 @@ import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 
 import { Search } from "@material-ui/icons";
 import SearchProductsByStore from "./SearchProductsByStore";
-
 
 const Mp3Recorder = new MicRecorder({ bitRate: 128 });
 
@@ -134,21 +128,19 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: 10,
     flex: 1,
     border: "none",
-
   },
   messageInputPrivate: {
     paddingLeft: 10,
     flex: 1,
     border: "none",
     color: grey[800],
-
   },
   sendMessageIcons: {
     color: grey[700],
   },
   ForwardMessageIcons: {
     color: grey[700],
-    transform: 'scaleX(-1)'
+    transform: "scaleX(-1)",
   },
   uploadInput: {
     display: "none",
@@ -160,7 +152,7 @@ const useStyles = makeStyles((theme) => ({
     position: "relative",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: theme.mode === 'light' ? "#ffffff" : "#202c33",
+    backgroundColor: theme.mode === "light" ? "#ffffff" : "#202c33",
     borderTop: "1px solid rgba(0, 0, 0, 0.12)",
   },
   emojiBox: {
@@ -343,8 +335,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketChannel }) => {
-
+const MessageInput = ({
+  ticketId,
+  ticketStatus,
+  droppedFiles,
+  contactId,
+  ticketChannel,
+}) => {
   const classes = useStyles();
   const theme = useTheme();
   const [mediasUpload, setMediasUpload] = useState([]);
@@ -359,7 +356,8 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
   const inputRef = useRef();
   const [onDragEnter, setOnDragEnter] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const { setReplyingMessage, replyingMessage } = useContext(ReplyMessageContext);
+  const { setReplyingMessage, replyingMessage } =
+    useContext(ReplyMessageContext);
   const { setEditingMessage, editingMessage } = useContext(EditMessageContext);
   const { user } = useContext(AuthContext);
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
@@ -368,14 +366,16 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
   const { get: getSetting } = useCompanySettings();
   const [signMessage, setSignMessage] = useState(true);
   const [privateMessage, setPrivateMessage] = useState(false);
-  const [privateMessageInputVisible, setPrivateMessageInputVisible] = useState(false);
+  const [privateMessageInputVisible, setPrivateMessageInputVisible] =
+    useState(false);
   const [senVcardModalOpen, setSenVcardModalOpen] = useState(false);
   const [showModalMedias, setShowModalMedias] = useState(false);
 
   const { list: listQuickMessages } = useQuickMessages();
 
+  const [searchProductsModalOpen, setSearchProductsModalOpen] = useState(false);
 
-  const isMobile = useMediaQuery('(max-width: 767px)'); // Ajuste o valor conforme necessário
+  const isMobile = useMediaQuery("(max-width: 767px)"); // Ajuste o valor conforme necessário
   const [placeholderText, setPlaceHolderText] = useState("");
 
   // Determine o texto do placeholder com base no ticketStatus
@@ -392,12 +392,13 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
     if (isMobile && placeholderText.length > maxLength) {
       setPlaceHolderText(placeholderText.substring(0, maxLength) + "...");
     }
-  }, [ticketStatus])
+  }, [ticketStatus]);
 
   const {
     selectedMessages,
     setForwardMessageModalOpen,
-    showSelectMessageCheckbox } = useContext(ForwardMessageContext);
+    showSelectMessageCheckbox,
+  } = useContext(ForwardMessageContext);
 
   useEffect(() => {
     if (droppedFiles && droppedFiles.length > 0) {
@@ -429,15 +430,14 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
       setReplyingMessage(null);
       //setSignMessage(true);
       setPrivateMessage(false);
-      setPrivateMessageInputVisible(false)
+      setPrivateMessageInputVisible(false);
       setEditingMessage(null);
     };
   }, [ticketId, setReplyingMessage, setEditingMessage]);
 
   useEffect(() => {
     setTimeout(() => {
-      if (isMounted.current)
-        setOnDragEnter(false);
+      if (isMounted.current) setOnDragEnter(false);
     }, 1000);
     // eslint-disable-next-line
   }, [onDragEnter === true]);
@@ -446,7 +446,7 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
   useEffect(() => {
     const fetchSettings = async () => {
       const setting = await getSetting({
-        "column": "sendSignMessage"
+        column: "sendSignMessage",
       });
 
       if (isMounted.current) {
@@ -456,7 +456,7 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
             localStorage.getItem("persistentSignMessage")
           );
           if (isNil(signMessageStorage)) {
-            setSignMessage(true)
+            setSignMessage(true);
           } else {
             setSignMessage(signMessageStorage);
           }
@@ -470,12 +470,24 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
 
   const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
-  }
+  };
 
   const handleSendLinkVideo = async () => {
     const link = `https://meet.jit.si/${ticketId}`;
     setInputMessage(link);
-  }
+  };
+
+  // NOVO: Função para abrir o modal de busca de produtos
+  const handleOpenSearchProductsModal = () => {
+    setSearchProductsModalOpen(true);
+    handleMenuItemClick(); // Fecha o menu, se estiver aberto
+  };
+
+  // NOVO: Função para fechar o modal de busca de produtos
+  const handleCloseSearchProductsModal = () => {
+    setSearchProductsModalOpen(false);
+    inputRef.current.focus(); // Retorna o foco para o input principal após fechar
+  };
 
   const handleChangeInput = (e) => {
     setInputMessage(e.target.value);
@@ -535,12 +547,12 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
 
   const handleOpenModalForward = () => {
     if (selectedMessages.length === 0) {
-      setForwardMessageModalOpen(false)
+      setForwardMessageModalOpen(false);
       toastError(i18n.t("messagesList.header.notMessage"));
       return;
     }
     setForwardMessageModalOpen(true);
-  }
+  };
 
   const getStatusSingMessageLocalstogare = () => {
     const signMessageStorage = JSON.parse(
@@ -607,7 +619,7 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
     setMediasUpload([]);
     setShowModalMedias(false);
     setPrivateMessage(false);
-    setPrivateMessageInputVisible(false)
+    setPrivateMessageInputVisible(false);
   };
 
   const handleSendContatcMessage = async (vcard) => {
@@ -644,7 +656,6 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
   };
 
   const handleSendMessage = async () => {
-
     if (inputMessage.trim() === "") return;
     setLoading(true);
 
@@ -658,9 +669,10 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
       read: 1,
       fromMe: true,
       mediaUrl: "",
-      body: (signMessage || privateMessage) && !editingMessage
-        ? `*${userName}:*\n${sendMessage}`
-        : sendMessage,
+      body:
+        (signMessage || privateMessage) && !editingMessage
+          ? `*${userName}:*\n${sendMessage}`
+          : sendMessage,
       quotedMsg: replyingMessage,
       isPrivate: privateMessage ? "true" : "false",
     };
@@ -681,7 +693,7 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
     setReplyingMessage(null);
     setPrivateMessage(false);
     setEditingMessage(null);
-    setPrivateMessageInputVisible(false)
+    setPrivateMessageInputVisible(false);
     handleMenuItemClick();
   };
 
@@ -714,7 +726,6 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
         };
       });
       if (isMounted.current) {
-
         setQuickAnswer(options);
       }
     }
@@ -794,9 +805,7 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
     }
   };
 
-
   const handleUploadAudio = async () => {
-
     setLoading(true);
     try {
       const [, blob] = await Mp3Recorder.stop().getMp3();
@@ -807,7 +816,10 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
       }
 
       const formData = new FormData();
-      const filename = ticketChannel === "whatsapp" ? `${new Date().getTime()}.mp3` : `${new Date().getTime()}.m4a`;
+      const filename =
+        ticketChannel === "whatsapp"
+          ? `${new Date().getTime()}.mp3`
+          : `${new Date().getTime()}.m4a`;
       formData.append("medias", blob, filename);
       formData.append("body", filename);
       formData.append("fromMe", true);
@@ -878,8 +890,7 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
               )}
               {message.body}
             </div>
-          )
-          }
+          )}
         </div>
         <IconButton
           aria-label="showRecorder"
@@ -899,7 +910,6 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
 
   if (mediasUpload.length > 0) {
     return (
-
       <Paper
         elevation={0}
         square
@@ -916,11 +926,9 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
             onCancelSelection={handleCancelSelection}
           />
         )}
-
       </Paper>
-    )
-  }
-  else {
+    );
+  } else {
     return (
       <>
         {modalCameraOpen && (
@@ -938,6 +946,13 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
             }}
           />
         )}
+
+        {searchProductsModalOpen && (
+          <SearchProductsByStore
+            onClose={handleCloseSearchProductsModal}
+            ticketId={ticketId}
+          />
+        )}
         <Paper
           square
           elevation={0}
@@ -945,9 +960,22 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
           onDragEnter={() => setOnDragEnter(true)}
           onDrop={(e) => handleInputDrop(e)}
         >
-          {(replyingMessage && renderReplyingMessage(replyingMessage)) || (editingMessage && renderReplyingMessage(editingMessage))}
+          {(replyingMessage && renderReplyingMessage(replyingMessage)) ||
+            (editingMessage && renderReplyingMessage(editingMessage))}
           <div className={classes.newMessageBox}>
             <Hidden only={["sm", "xs"]}>
+            {ticketStatus === "open" && (
+                <Tooltip title={"Buscar Produtos por Loja"}>
+                  <IconButton
+                    aria-label="searchProducts"
+                    component="span"
+                    onClick={handleOpenSearchProductsModal}
+                    disabled={disableOption()}
+                  >
+                    <Search className={classes.sendMessageIcons} />
+                  </IconButton>
+                </Tooltip>
+              )}
               <IconButton
                 aria-label="emojiPicker"
                 component="span"
@@ -970,6 +998,8 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                   </ClickAwayListener>
                 </div>
               ) : null}
+
+             
 
               <Fab
                 disabled={disableOption()}
@@ -1025,8 +1055,11 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                     onChange={handleChangeMedias}
                   />
                   <label htmlFor="upload-doc-button">
-                    <Fab aria-label="upload-img"
-                      component="span" className={classes.invertedFabMenuDoc}>
+                    <Fab
+                      aria-label="upload-img"
+                      component="span"
+                      className={classes.invertedFabMenuDoc}
+                    >
                       <Description />
                     </Fab>
                     Documento
@@ -1063,7 +1096,14 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                     onClick={handleChangeSign}
                   >
                     {signMessage === true ? (
-                      <Create style={{ color: theme.mode === "light" ? theme.palette.primary.main : "#EEE" }} />
+                      <Create
+                        style={{
+                          color:
+                            theme.mode === "light"
+                              ? theme.palette.primary.main
+                              : "#EEE",
+                        }}
+                      />
                     ) : (
                       <Create style={{ color: "grey" }} />
                     )}
@@ -1077,7 +1117,14 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                   onClick={handlePrivateMessage}
                 >
                   {privateMessage === true ? (
-                    <Comment style={{ color: theme.mode === "light" ? theme.palette.primary.main : "#EEE" }} />
+                    <Comment
+                      style={{
+                        color:
+                          theme.mode === "light"
+                            ? theme.palette.primary.main
+                            : "#EEE",
+                      }}
+                    />
                   ) : (
                     <Comment style={{ color: "grey" }} />
                   )}
@@ -1145,7 +1192,14 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                       onClick={handleChangeSign}
                     >
                       {signMessage === true ? (
-                        <Create style={{ color: theme.mode === "light" ? theme.palette.primary.main : "#EEE" }} />
+                        <Create
+                          style={{
+                            color:
+                              theme.mode === "light"
+                                ? theme.palette.primary.main
+                                : "#EEE",
+                          }}
+                        />
                       ) : (
                         <Create style={{ color: "grey" }} />
                       )}
@@ -1159,7 +1213,14 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                     onClick={handlePrivateMessage}
                   >
                     {privateMessage === true ? (
-                      <Comment style={{ color: theme.mode === "light" ? theme.palette.primary.main : "#EEE" }} />
+                      <Comment
+                        style={{
+                          color:
+                            theme.mode === "light"
+                              ? theme.palette.primary.main
+                              : "#EEE",
+                        }}
+                      />
                     ) : (
                       <Comment style={{ color: "grey" }} />
                     )}
@@ -1197,7 +1258,6 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                           handleSendMessage();
                         }
                       }}
-
                     />
                     {typeBar ? (
                       <ul className={classes.messageQuickAnswersWrapper}>
@@ -1287,11 +1347,18 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                     <IconButton
                       aria-label="sendMessage"
                       component="span"
-                      onClick={showSelectMessageCheckbox ? handleOpenModalForward : handleSendMessage}
+                      onClick={
+                        showSelectMessageCheckbox
+                          ? handleOpenModalForward
+                          : handleSendMessage
+                      }
                       disabled={loading}
                     >
-                      {showSelectMessageCheckbox ?
-                        <Reply className={classes.ForwardMessageIcons} /> : <Send className={classes.sendMessageIcons} />}
+                      {showSelectMessageCheckbox ? (
+                        <Reply className={classes.ForwardMessageIcons} />
+                      ) : (
+                        <Send className={classes.sendMessageIcons} />
+                      )}
                     </IconButton>
                   </>
                 ) : recording ? (
@@ -1340,11 +1407,18 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
                 <IconButton
                   aria-label="sendMessage"
                   component="span"
-                  onClick={showSelectMessageCheckbox ? handleOpenModalForward : handleSendMessage}
+                  onClick={
+                    showSelectMessageCheckbox
+                      ? handleOpenModalForward
+                      : handleSendMessage
+                  }
                   disabled={loading}
                 >
-                  {showSelectMessageCheckbox ?
-                    <Reply className={classes.ForwardMessageIcons} /> : <Send className={classes.sendMessageIcons} />}
+                  {showSelectMessageCheckbox ? (
+                    <Reply className={classes.ForwardMessageIcons} />
+                  ) : (
+                    <Send className={classes.sendMessageIcons} />
+                  )}
                 </IconButton>
               </>
             )}
@@ -1364,4 +1438,3 @@ const MessageInput = ({ ticketId, ticketStatus, droppedFiles, contactId, ticketC
 };
 
 export default MessageInput;
-

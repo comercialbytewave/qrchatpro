@@ -9,9 +9,11 @@ import {
   AllowNull,
   Unique,
   ForeignKey,
-  BelongsTo
+  BelongsTo,
+  HasMany
 } from "sequelize-typescript";
 import Company from "./Company";
+import Product from "./Product";
 
 @Table({
   indexes: [
@@ -51,6 +53,9 @@ class Category extends Model<Category> {
 
   @UpdatedAt
   updatedAt: Date;
+
+  @HasMany(() => Product)
+  products: Product[];
 }
 
 export default Category;

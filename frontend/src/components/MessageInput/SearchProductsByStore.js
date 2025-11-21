@@ -24,6 +24,7 @@ import { ReplyMessageContext } from "../../context/ReplyingMessage/ReplyingMessa
 import { DebouncedInput } from "./DebouncedInput";
 import { Check } from "@material-ui/icons";
 import { toast } from "react-toastify";
+import { AuthContext } from "../../context/Auth/AuthContext";
 
 const useStyles = makeStyles(theme => ({
   dialogTitle: {
@@ -149,6 +150,8 @@ const SearchProductsByStore = ({ onClose, ticketId }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { user } = useContext(AuthContext);
+
   const [pedido, setPedido] = useState(() => JSON.parse(localStorage.getItem(`pedido_${ticketId}`)) || {});
 
   const [productSelected, setProductSelected] = useState(undefined);
@@ -269,7 +272,7 @@ const SearchProductsByStore = ({ onClose, ticketId }) => {
 
     let blob = null;
     if (productSelected.mediaPath) {
-      const mediaUrl = `${process.env.REACT_APP_BACKEND_URL}/public/${productSelected.mediaPath}`;
+      const mediaUrl = `${process.env.REACT_APP_BACKEND_URL}/public/company${user.companyId}/${productSelected.mediaPath}`;
       try {
         const response = await fetch(mediaUrl);
         blob = await response.blob();
@@ -426,7 +429,7 @@ const SearchProductsByStore = ({ onClose, ticketId }) => {
                       elevation={1}
                     >
                       <img
-                        src={`${process.env.REACT_APP_BACKEND_URL}/public/${prices.product.mediaPath}`}
+                        src={`${process.env.REACT_APP_BACKEND_URL}/public/company${user.companyId}/${prices.product.mediaPath}`}
                         alt=""
                         style={{
                           width: 50,
@@ -498,7 +501,7 @@ const SearchProductsByStore = ({ onClose, ticketId }) => {
                 elevation={1}
               >
                 <img
-                  src={`${process.env.REACT_APP_BACKEND_URL}/public/${productSelected.mediaPath}`}
+                  src={`${process.env.REACT_APP_BACKEND_URL}/public/company${user.companyId}/${productSelected.mediaPath}`}
                   alt=""
                   style={{
                     width: 50,

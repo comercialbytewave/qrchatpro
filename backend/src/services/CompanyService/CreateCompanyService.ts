@@ -16,6 +16,8 @@ interface CompanyData {
   document?: string;
   paymentMethod?: string;
   password?: string;
+  slug?: string;
+  token?: string;
   companyUserName?: string;
 }
 
@@ -33,6 +35,8 @@ const CreateCompanyService = async (
     recurrence,
     document,
     paymentMethod,
+    slug,
+    token,
     companyUserName
   } = companyData;
 
@@ -60,7 +64,9 @@ const CreateCompanyService = async (
       dueDate,
       recurrence,
       document,
-      paymentMethod
+      paymentMethod,
+      slug,
+      token
     },
       { transaction: t }
     );

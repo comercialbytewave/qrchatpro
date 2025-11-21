@@ -2007,7 +2007,7 @@ const messages = {
             showNotificationPending: "Mostrar notificação para tickets pendentes"
           },
           customMessages: {
-            sendQueuePositionMessage: "Mensagem de posição na fila",
+            sendQueuePositionMessage: "Mensagem de posição na fila - ${qtd}",
             AcceptCallWhatsappMessage: "Mensagem para informar que não aceita ligações",
             greetingAcceptedMessage: "Mensagem de Saudação ao aceitar ticket",
             transferMessage: "Mensagem de transferência - ${queue.name} = fila destino",

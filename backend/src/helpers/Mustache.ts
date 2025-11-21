@@ -69,7 +69,7 @@ export const firstName = (ticket?: Ticket): string => {
   return '';
 };
 
-export default (body: string, ticket?: Ticket): string => {
+export default (body: string, ticket?: Ticket, qtd?: number): string => {
   const view = {
     firstName: firstName(ticket),
     name: ticket ? ticket?.contact?.name : "",
@@ -83,6 +83,7 @@ export default (body: string, ticket?: Ticket): string => {
     data_hora: new Array(date(), hour()).join(" às "),
     protocol: new Array(control(), ticket ? ticket.id.toString() : "").join(""),
     name_company: ticket ? ticket?.company?.name : "",
+    qtd: qtd ? `*${qtd}*` : "",
   };
 
   return Mustache.render(body, view);

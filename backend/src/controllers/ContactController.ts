@@ -370,11 +370,11 @@ export const getContactProfileURL = async (req: Request, res: Response) => {
 
   if (number) {
     const validNumber = await CheckContactNumber(number, companyId);
-
+    
     const profilePicUrl = await GetProfilePicUrl(validNumber, companyId);
-
+    
     const contact = await NumberSimpleListService({ number: validNumber, companyId: companyId })
-
+    
     let obj: any;
     if (contact.length > 0) {
       obj = {

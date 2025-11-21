@@ -1,5 +1,5 @@
 // src/components/CartDrawer.jsx
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import {
   Drawer,
   IconButton,
@@ -21,6 +21,7 @@ import AddIcon from "@material-ui/icons/Add";
 import RemoveIcon from "@material-ui/icons/Remove";
 
 import CheckoutModal from "../CheckoutModal";
+import { AuthContext } from "../../context/Auth/AuthContext";
 
 const drawerWidth = 320;
 
@@ -81,7 +82,7 @@ const CartDrawer = ({ open, onClose, ticketId, onCheckout }) => {
   const classes = useStyles();
   const [pedido, setPedido] = useState({});
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-
+  const { user } = useContext(AuthContext);
   const cartItems = pedido?.itens || [];
 
   const carregarPedido = useCallback(() => {
@@ -175,7 +176,7 @@ const CartDrawer = ({ open, onClose, ticketId, onCheckout }) => {
               >
                 <ListItemAvatar>
                   <Avatar
-                    src={`${process.env.REACT_APP_BACKEND_URL}/public/${item.mediaPath}`}
+                    src={`${process.env.REACT_APP_BACKEND_URL}/public/company${user.companyId}/${item.mediaPath}`}
                     className={classes.avatar}
                   />
                 </ListItemAvatar>
