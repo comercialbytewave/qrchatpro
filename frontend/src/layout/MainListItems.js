@@ -651,6 +651,36 @@ const MainListItems = ({ collapsed, drawerClose }) => {
             <ListSubheader inset>
               {i18n.t("mainDrawer.listItems.administration")}
             </ListSubheader>
+            <Can
+              role={
+                user.profile === "user" && user.allowConnections === "enabled"
+                  ? "admin"
+                  : user.profile
+              }
+              perform={"drawer-admin-items:view"}
+              yes={() => (
+                <ListItemLink
+                  to="/connections"
+                  primary={i18n.t("mainDrawer.listItems.connections")}
+                  icon={<SyncAltIcon />}
+                  showBadge={connectionWarning}
+                  tooltip={collapsed}
+                />
+              )}
+            />
+            <Can
+              role={user.profile}
+              perform="dashboard:view"
+              yes={() => (
+                <ListItemLink
+                  to="/queues"
+                  primary={i18n.t("mainDrawer.listItems.queues")}
+                  icon={<AccountTreeOutlinedIcon />}
+                  tooltip={collapsed}
+                />
+              )}
+            />
+
             {showCampaigns && (
               <Can
                 role={user.profile}
@@ -1046,7 +1076,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                     icon={<LocalAtmIcon />}
                                     tooltip={collapsed}
                                   />
-                                   <ListItemLink
+                                  <ListItemLink
                                     to="/statusBudGets"
                                     primary={i18n.t(
                                       "mainDrawer.listItems.statusBudGets"
@@ -1157,24 +1187,6 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                         />
                       )}
 
-                      {showExternalApi && (
-                        <>
-                          <Can
-                            role={user.profile}
-                            perform="dashboard:view"
-                            yes={() => (
-                              <ListItemLink
-                                to="/messages-api"
-                                primary={i18n.t(
-                                  "mainDrawer.listItems.messagesAPI"
-                                )}
-                                icon={<CodeRoundedIcon />}
-                                tooltip={collapsed}
-                              />
-                            )}
-                          />
-                        </>
-                      )}
                       {/* FLOWBUILDER */}
                       <Can
                         role={user.profile}
@@ -1260,6 +1272,22 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                 </>
               )}
             />
+            {showExternalApi && (
+              <>
+                <Can
+                  role={user.profile}
+                  perform="dashboard:view"
+                  yes={() => (
+                    <ListItemLink
+                      to="/messages-api"
+                      primary={i18n.t("mainDrawer.listItems.messagesAPI")}
+                      icon={<CodeRoundedIcon />}
+                      tooltip={collapsed}
+                    />
+                  )}
+                />
+              </>
+            )}
 
             {user.super && (
               <ListItemLink
@@ -1282,36 +1310,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                 />
               )}
             />
-            <Can
-              role={user.profile}
-              perform="dashboard:view"
-              yes={() => (
-                <ListItemLink
-                  to="/queues"
-                  primary={i18n.t("mainDrawer.listItems.queues")}
-                  icon={<AccountTreeOutlinedIcon />}
-                  tooltip={collapsed}
-                />
-              )}
-            />
 
-            <Can
-              role={
-                user.profile === "user" && user.allowConnections === "enabled"
-                  ? "admin"
-                  : user.profile
-              }
-              perform={"drawer-admin-items:view"}
-              yes={() => (
-                <ListItemLink
-                  to="/connections"
-                  primary={i18n.t("mainDrawer.listItems.connections")}
-                  icon={<SyncAltIcon />}
-                  showBadge={connectionWarning}
-                  tooltip={collapsed}
-                />
-              )}
-            />
             {user.super && (
               <ListItemLink
                 to="/allConnections"

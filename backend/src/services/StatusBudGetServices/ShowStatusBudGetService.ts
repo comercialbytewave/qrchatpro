@@ -7,7 +7,7 @@ interface Request {
   companyId: number
 }
 
-const ShowStatusBudGetService = async ({id, companyId}: Request): Promise<Category> => {
+const ShowStatusBudGetService = async ({id, companyId}: Request): Promise<StatusBudGets> => {
   const statusBudGet = await StatusBudGets.findOne({where: {id, companyId}});
 
   if (!statusBudGet) {
