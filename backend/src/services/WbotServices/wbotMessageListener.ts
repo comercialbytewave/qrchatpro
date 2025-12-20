@@ -2414,6 +2414,7 @@ export const handleRating = async (
     rate: finalRate
   });
 
+  
   if (
     !isNil(complationMessage) &&
     complationMessage !== "" &&
@@ -2431,6 +2432,11 @@ export const handleRating = async (
     }
   }
 
+  await ticketTraking.update({
+    finishedAt: moment().toDate(),
+    rated: rate ? true : false
+  });
+  
   await ticket.update({
     isBot: false,
     status: "closed",
@@ -3373,6 +3379,7 @@ const handleMessage = async (
         `${unreadMessages}`
       );
     }
+   
 
     const settings = await CompaniesSettings.findOne({
       where: { companyId }
@@ -3519,6 +3526,19 @@ const handleMessage = async (
     try {
       if (!msg.key.fromMe) {
         //MENSAGEM DE FÉRIAS COLETIVAS
+        if (verifyRating(ticketTraking)) {
+          let rate: number | null = null;
+
+          const messageBody = getBodyMessage(msg);
+
+          if (messageBody) {
+            rate = +messageBody || null;
+          }
+
+          const rated = !Number.isNaN(rate) && Number.isInteger(rate) && !isNull(rate);
+          if (rated ) handleRating(rate, ticket, ticketTraking);
+          return;
+        }
 
         if (!isNil(whatsapp.collectiveVacationMessage && !isGroup)) {
           const currentDate = moment();
