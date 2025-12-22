@@ -1846,7 +1846,7 @@ const verifyQueue = async (
               ticket.isGroup ? "g.us" : "s.whatsapp.net"
             }`,
             {
-              text: bodyMessageLGPD + "\n\nLink para LGPD: " + lgpdLink
+              text: bodyMessageLGPD + "\n\nLink para LGPD: " + lgpdLink + '\n\n1 - Aceito\n2 - Nao aceito'
             }
           );
         },
@@ -1863,7 +1863,7 @@ const verifyQueue = async (
       return;
 
     } else if(ticket.status === "lgpd" && !ticket.lgpdAcceptedAt && ticket.lgpdSendMessageAt) {
-      const optionLgpd = msg?.message?.extendedTextMessage?.text
+      const optionLgpd = msg?.message?.conversation || msg?.message?.extendedTextMessage?.text
 
       if(optionLgpd === "1") {
         await ticket.update({
