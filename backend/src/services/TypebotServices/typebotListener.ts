@@ -15,7 +15,7 @@ type Session = WASocket & {
 
 interface Request {
   wbot: Session;
-  msg: proto.IWebMessageInfo;
+  msg: WAMessage;
   ticket: Ticket;
   typebot: QueueIntegrations;
 }
@@ -40,6 +40,8 @@ const typebotListener = async ({
     typebotRestartMessage
   } = typebot;
 
+  msg.key.remoteJid = msg.key.addressingMode === 'lid' && msg.key.remoteJidAlt ? msg.key.remoteJidAlt : msg.key.remoteJid;
+  
   const number = msg.key.remoteJid.replace(/\D/g, '');
 
   let body = getBodyMessage(msg as WAMessage);

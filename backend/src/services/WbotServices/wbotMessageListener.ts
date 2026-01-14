@@ -3764,8 +3764,8 @@ const handleMessage = async (
       !ticket.queue &&
       !ticket.user &&
       ticket.isBot &&
-      !isNil(whatsapp.integrationId) &&
-      !ticket.useIntegration
+      !isNil(whatsapp.integrationId) // &&
+      // !ticket.useIntegration
     ) {
       const integrations = await ShowQueueIntegrationService(
         whatsapp.integrationId,

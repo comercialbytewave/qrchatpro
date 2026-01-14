@@ -286,6 +286,9 @@ const QueueIntegration = () => {
                   <TableCell padding="checkbox"></TableCell>
                   <TableCell align="center">{i18n.t("queueIntegration.table.id")}</TableCell>
                   <TableCell align="center">{i18n.t("queueIntegration.table.name")}</TableCell>
+                  <TableCell align="center">
+                    {i18n.t("queues.table.actions")}
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

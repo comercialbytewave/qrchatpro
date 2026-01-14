@@ -74,7 +74,7 @@ const FindOrCreateTicketService = async (
         queueId: queueId !== ticket.queueId ? ticket.queueId : queueId,
       })
     } else {
-      await ticket.update({ unreadMessages, isBot: false });
+      await ticket.update({ unreadMessages, isBot: ticket.isBot ? true : false });
     }
 
     ticket = await ShowTicketService(ticket.id, companyId);
