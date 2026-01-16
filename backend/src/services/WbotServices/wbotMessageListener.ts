@@ -1831,14 +1831,16 @@ const verifyQueue = async (
       console.error(error);
     }
   }
-  
+
   if (!isNil(settings?.lgpdMessage) && settings.lgpdMessage !== "") {
-
     const bodyMessageLGPD = formatBody(`\u200e${settings.lgpdMessage}`, ticket);
-    const lgpdLink = settings.lgpdLink    
+    const lgpdLink = settings.lgpdLink;
 
-    if (ticket.status === "lgpd" && !ticket.lgpdAcceptedAt && !ticket.lgpdSendMessageAt) {
-      
+    if (
+      ticket.status === "lgpd" &&
+      !ticket.lgpdAcceptedAt &&
+      !ticket.lgpdSendMessageAt
+    ) {
       const debouncedSentMessage = debounce(
         async () => {
           await wbot.sendMessage(
@@ -1846,7 +1848,11 @@ const verifyQueue = async (
               ticket.isGroup ? "g.us" : "s.whatsapp.net"
             }`,
             {
-              text: bodyMessageLGPD + "\n\nLink para LGPD: " + lgpdLink + '\n\n1 - Aceito\n2 - Nao aceito'
+              text:
+                bodyMessageLGPD +
+                "\n\nLink para LGPD: " +
+                lgpdLink +
+                "\n\n1 - Aceito\n2 - Nao aceito"
             }
           );
         },
@@ -1861,19 +1867,21 @@ const verifyQueue = async (
       });
 
       return;
+    } else if (
+      ticket.status === "lgpd" &&
+      !ticket.lgpdAcceptedAt &&
+      ticket.lgpdSendMessageAt
+    ) {
+      const optionLgpd =
+        msg?.message?.conversation || msg?.message?.extendedTextMessage?.text;
 
-    } else if(ticket.status === "lgpd" && !ticket.lgpdAcceptedAt && ticket.lgpdSendMessageAt) {
-      const optionLgpd = msg?.message?.conversation || msg?.message?.extendedTextMessage?.text
-
-      if(optionLgpd === "1") {
+      if (optionLgpd === "1") {
         await ticket.update({
           status: "pending",
           lgpdAcceptedAt: new Date(),
           lgpdSendMessageAt: new Date()
         });
-
-      } else if(optionLgpd === "2"){
-
+      } else if (optionLgpd === "2") {
         await ticket.update({
           status: "lgpd",
           lgpdAcceptedAt: null,
@@ -1888,8 +1896,12 @@ const verifyQueue = async (
           lgpdAcceptedAt: null,
           lgpdSendMessageAt: null
         };
-    
-        await UpdateTicketService({ ticketData, ticketId: ticket.id, companyId });
+
+        await UpdateTicketService({
+          ticketData,
+          ticketId: ticket.id,
+          companyId
+        });
 
         await wbot.sendMessage(
           `${ticket.contact.number}@${
@@ -1900,7 +1912,6 @@ const verifyQueue = async (
           }
         );
         return;
-
       } else {
         await ticket.update({
           status: "lgpd",
@@ -2414,7 +2425,6 @@ export const handleRating = async (
     rate: finalRate
   });
 
-  
   if (
     !isNil(complationMessage) &&
     complationMessage !== "" &&
@@ -2436,7 +2446,7 @@ export const handleRating = async (
     finishedAt: moment().toDate(),
     rated: rate ? true : false
   });
-  
+
   await ticket.update({
     isBot: false,
     status: "closed",
@@ -2776,11 +2786,11 @@ const flowbuilderIntegration = async (
   msg: WAMessage,
   wbot: Session,
   companyId: number,
-  queueIntegration: QueueIntegrations,
+  //  queueIntegration: QueueIntegrations,
   ticket: Ticket,
   contact: Contact,
-  isFirstMsg?: Ticket,
-  isTranfered?: boolean
+  isFirstMsg?: Ticket
+  //isTranfered?: boolean
 ) => {
   const io = getIO();
   const quotedMsg = await verifyQuotedMessage(msg);
@@ -2851,9 +2861,10 @@ const flowbuilderIntegration = async (
       whatsappId: whatsapp.id
     }
   });
-
+  // Welcome
   if (
     !isFirstMsg &&
+    whatsapp.flowIdWelcome &&
     listPhrase.filter(item => item.phrase === body).length === 0
   ) {
     const flow = await FlowBuilderModel.findOne({
@@ -2907,6 +2918,7 @@ const flowbuilderIntegration = async (
         ticket.id,
         mountDataContact
       );
+      return;
     }
   }
 
@@ -2922,6 +2934,7 @@ const flowbuilderIntegration = async (
   if (
     listPhrase.filter(item => item.phrase === body).length === 0 &&
     diferencaEmMilissegundos >= seisHorasEmMilissegundos &&
+    whatsapp.flowIdNotPhrase &&
     isFirstMsg
   ) {
     console.log("2427", "handleMessageIntegration");
@@ -2956,6 +2969,73 @@ const flowbuilderIntegration = async (
         ticket.id,
         mountDataContact
       );
+      return;
+    }
+  }
+
+  // Integration
+  if (
+    isFirstMsg &&
+    whatsapp.integrationId && diferencaEmMilissegundos >= seisHorasEmMilissegundos &&
+    listPhrase.filter(item => item.phrase === body).length === 0
+  ) {
+    const integration = await ShowQueueIntegrationService(
+      whatsapp.integrationId,
+      ticket.companyId
+    );
+    const flow = await FlowBuilderModel.findOne({
+      where: {
+        name: integration.name
+        //id: whatsapp.integrationId
+      }
+    });
+    if (flow) {
+      const nodes: INodes[] = flow.flow["nodes"];
+      const connections: IConnections[] = flow.flow["connections"];
+
+      const mountDataContact = {
+        number: contact.number,
+        name: contact.name,
+        email: contact.email
+      };
+
+      // const worker = new Worker("./src/services/WebhookService/WorkerAction.ts");
+
+      // // Enviar as variáveis como parte da mensagem para o Worker
+      // console.log('DISPARO1')
+      // const data = {
+      //   idFlowDb: flowUse.flowIdWelcome,
+      //   companyId: ticketUpdate.companyId,
+      //   nodes: nodes,
+      //   connects: connections,
+      //   nextStage: flow.flow["nodes"][0].id,
+      //   dataWebhook: null,
+      //   details: "",
+      //   hashWebhookId: "",
+      //   pressKey: null,
+      //   idTicket: ticketUpdate.id,
+      //   numberPhrase: mountDataContact
+      // };
+      // worker.postMessage(data);
+      // worker.on("message", message => {
+      //   console.log(`Mensagem do worker: ${message}`);
+      // });
+
+      await ActionsWebhookService(
+        whatsapp.id,
+        flow.id,
+        ticket.companyId,
+        nodes,
+        connections,
+        flow.flow["nodes"][0].id,
+        null,
+        "",
+        "",
+        null,
+        ticket.id,
+        mountDataContact
+      );
+      return;
     }
   }
 
@@ -3070,6 +3150,7 @@ const flowbuilderIntegration = async (
         body,
         ticket.id
       );
+      return;
     } else {
       console.log("2586", "handleMessageIntegration");
       const flow = await FlowBuilderModel.findOne({
@@ -3127,6 +3208,7 @@ const flowbuilderIntegration = async (
         ticket.id,
         mountDataContact
       );
+      return;
     }
   }
 };
@@ -3210,6 +3292,9 @@ export const handleMessageIntegration = async (
   } else if (queueIntegration.type === "typebot") {
     // await typebots(ticket, msg, wbot, queueIntegration);
     await typebotListener({ ticket, msg, wbot, typebot: queueIntegration });
+  } else if (queueIntegration.type === "flowbuilder") {
+    // const whatsapp = await ShowWhatsAppService(wbot.id!, companyId);
+    //await flowbuilderIntegration(msg, wbot, companyId, ticket, contact, isFirstMsg);
   }
 };
 
@@ -3379,7 +3464,6 @@ const handleMessage = async (
         `${unreadMessages}`
       );
     }
-   
 
     const settings = await CompaniesSettings.findOne({
       where: { companyId }
@@ -3535,8 +3619,9 @@ const handleMessage = async (
             rate = +messageBody || null;
           }
 
-          const rated = !Number.isNaN(rate) && Number.isInteger(rate) && !isNull(rate);
-          if (rated ) handleRating(rate, ticket, ticketTraking);
+          const rated =
+            !Number.isNaN(rate) && Number.isInteger(rate) && !isNull(rate);
+          if (rated) handleRating(rate, ticket, ticketTraking);
           return;
         }
 
@@ -3733,9 +3818,9 @@ const handleMessage = async (
       !ticket.user &&
       !ticket.flowStopped &&
       !ticket.flowWebhook &&
-      // ticket.isBot &&
-      !isNil(whatsapp.integrationId) &&
-      !ticket.useIntegration
+      ticket.isBot &&
+      !isNil(whatsapp.integrationId) //&&
+      // !ticket.useIntegration
     ) {
       const integrations = await ShowQueueIntegrationService(
         whatsapp.integrationId,
@@ -3748,7 +3833,7 @@ const handleMessage = async (
           msg,
           wbot,
           companyId,
-          integrations,
+          //integrations,
           ticket,
           contact,
           isFirstMsg
