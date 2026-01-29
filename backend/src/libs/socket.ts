@@ -8,10 +8,21 @@ import User from "../models/User";
 let io: SocketIO;
 
 export const initIO = (httpServer: Server): SocketIO => {
+  // Filter out undefined origins
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    process.env.ECOMMERCE_URL
+  ].filter(Boolean) as string[];
+
   io = new SocketIO(httpServer, {
     cors: {
-      origin: [ process.env.FRONTEND_URL,  process.env.ECOMMERCE_URL ],
-    }
+      origin: allowedOrigins,
+      methods: ["GET", "POST"],
+      credentials: true
+    },
+    transports: ["websocket", "polling"],
+    pingTimeout: 60000,
+    pingInterval: 25000
   });
 
   if (process.env.SOCKET_ADMIN && JSON.parse(process.env.SOCKET_ADMIN)) {
@@ -26,9 +37,9 @@ export const initIO = (httpServer: Server): SocketIO => {
           mode: "development",
         });
       }
-    ); 
-  }  
-  
+    );
+  }
+
   const workspaces = io.of(/^\/\w+$/);
   workspaces.on("connection", socket => {
 

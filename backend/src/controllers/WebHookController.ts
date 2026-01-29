@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Whatsapp from "../models/Whatsapp";
 import { handleMessage } from "../services/FacebookServices/facebookMessageListener";
+import logger from "../utils/logger";
 // import { handleMessage } from "../services/FacebookServices/facebookMessageListener";
 
 export const index = async (req: Request, res: Response): Promise<Response> => {
@@ -10,12 +11,16 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
+  logger.info(`[WEBHOOK] Verification request - mode: ${mode}, token: ${token}`);
+
   if (mode && token) {
     if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      logger.info(`[WEBHOOK] Verification SUCCESS`);
       return res.status(200).send(challenge);
     }
   }
 
+  logger.warn(`[WEBHOOK] Verification FAILED`);
   return res.status(403).json({
     message: "Forbidden"
   });
@@ -28,6 +33,9 @@ export const webHook = async (
   try {
     const { body } = req;
 
+    logger.info(`[WEBHOOK] Received event - object: ${body.object}`);
+    logger.info(`[WEBHOOK] Full body: ${JSON.stringify(body, null, 2)}`);
+
     if (body.object === "page" || body.object === "instagram") {
       let channel: string;
 
@@ -37,7 +45,11 @@ export const webHook = async (
         channel = "instagram";
       }
 
+      logger.info(`[WEBHOOK] Channel: ${channel}, entries: ${body.entry?.length || 0}`);
+
       body.entry?.forEach(async (entry: any) => {
+        logger.info(`[WEBHOOK] Processing entry ID: ${entry.id}`);
+
         const getTokenPage = await Whatsapp.findOne({
           where: {
             facebookPageUserId: entry.id,
@@ -46,9 +58,13 @@ export const webHook = async (
         });
 
         if (getTokenPage) {
+          logger.info(`[WEBHOOK] Found connection for page ${entry.id}, company ${getTokenPage.companyId}`);
           entry.messaging?.forEach((data: any) => {
+            logger.info(`[WEBHOOK] Processing message: ${JSON.stringify(data)}`);
             handleMessage(getTokenPage, data, channel, getTokenPage.companyId);
           });
+        } else {
+          logger.warn(`[WEBHOOK] No connection found for page ID: ${entry.id}, channel: ${channel}`);
         }
       });
 
@@ -57,10 +73,12 @@ export const webHook = async (
       });
     }
 
+    logger.warn(`[WEBHOOK] Unknown object type: ${body.object}`);
     return res.status(404).json({
       message: body
     });
   } catch (error) {
+    logger.error(`[WEBHOOK] Error: ${error}`);
     return res.status(500).json({
       message: error
     });

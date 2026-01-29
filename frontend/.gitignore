@@ -9,3 +9,4 @@ yarn-error.log
 # Ignore test-related files
 /coverage.data
 /coverage/
+/build/

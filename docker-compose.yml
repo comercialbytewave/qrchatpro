@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # Redis
+  qrchat_redis:
+    image: redis:7-alpine
+    container_name: qrchat_redis
+    restart: always
+    command: redis-server --requirepass 13851424
+    volumes:
+      - redis_data:/data
+    networks:
+      - qrchat_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "13851424", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL
+  qrchat_postgres:
+    image: postgres:15-alpine
+    container_name: qrchat_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Wa@13851424
+      POSTGRES_DB: wpp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - qrchat_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend
+  qrchat_backend:
+    build:
+      context: ./backend
+      dockerfile: dockerfile
+    container_name: qrchat_backend
+    restart: always
+    ports:
+      - "8089:8089"
+    environment:
+      - NODE_ENV=production
+      - BACKEND_URL=https://qrchat.bytewave.com.br/api
+      - FRONTEND_URL=https://qrchat.bytewave.com.br
+      - PORT=8089
+      - DB_DIALECT=postgres
+      - DB_HOST=qrchat_postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASS=Wa@13851424
+      - DB_NAME=wpp
+      - JWT_SECRET=kZaOTd+YZpjRUyyuQUpigJaEMk4vcW4YOymKPZX0Ts8=
+      - JWT_REFRESH_SECRET=dBSXqFg9TaNUEDXVp6fhMTRLBysP+j2DSqf7+raxD3A=
+      - REDIS_URI=redis://default:13851424@qrchat_redis:6379
+      - REDIS_OPT_LIMITER_MAX=1
+      - REDIS_OPT_LIMITER_DURATION=3000
+      - USER_LIMIT=10000
+      - CONNECTIONS_LIMIT=100000
+      - CLOSED_SEND_BY_ME=true
+      - VERIFY_TOKEN=whaticket
+      - FACEBOOK_APP_ID=1415386853487738
+      - FACEBOOK_APP_SECRET=b9886bfcab47ca4d0bfe1e44a1b37a60
+      - MAIL_HOST=smtp.gmail.com
+      - MAIL_USER=comercialbytewave@gmail.com
+      - MAIL_PASS=Wa@13851424
+      - MAIL_FROM=comercialbytewave@gmail.com
+      - MAIL_PORT=467
+    volumes:
+      - backend_public:/usr/src/app/public
+    depends_on:
+      qrchat_redis:
+        condition: service_healthy
+      qrchat_postgres:
+        condition: service_healthy
+    networks:
+      - qrchat_network
+
+  # Frontend
+  qrchat_frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_BACKEND_URL=https://qrchat.bytewave.com.br/api
+        - REACT_APP_SOCKET_URL=https://qrchat.bytewave.com.br
+        - REACT_APP_FACEBOOK_APP_ID=1415386853487738
+        - REACT_APP_NAME_SYSTEM=QRChat
+        - REACT_APP_NUMBER_SUPPORT=+5585998146212
+    container_name: qrchat_frontend
+    restart: always
+    ports:
+      - "3008:3008"
+    depends_on:
+      - qrchat_backend
+    networks:
+      - qrchat_network
+
+volumes:
+  redis_data:
+  postgres_data:
+  backend_public:
+
+
+networks:
+  qrchat_network:
+    driver: bridge
