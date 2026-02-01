@@ -8,6 +8,7 @@ const formData: FormData = new FormData();
 const apiBase = (token: string) =>
   axios.create({
     baseURL: "https://graph.facebook.com/v18.0/",
+    timeout: 30000, // 30 segundos de timeout
     params: {
       access_token: token
     }
@@ -38,7 +39,7 @@ export const markSeen = async (id: string, token: string): Promise<void> => {
 };
 
 export const showTypingIndicator = async (
-  id: string, 
+  id: string,
   token: string,
   action: string
 ): Promise<void> => {
@@ -63,9 +64,11 @@ export const sendText = async (
   id: string | number,
   text: string,
   token: string,
+  senderId?: string
 ): Promise<void> => {
   try {
-    const { data } = await apiBase(token).post("me/messages", {
+    const endpoint = senderId ? `${senderId}/messages` : "me/messages";
+    const { data } = await apiBase(token).post(endpoint, {
       recipient: {
         id
       },
@@ -74,8 +77,17 @@ export const sendText = async (
       }
     });
     return data;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    const message = error?.response?.data;
+    if (message?.error?.code === 100 && message?.error?.type === "OAuthException") {
+      // Tentar envio alternativo para Instagram se falhar com erro de OAuth (comum quando se usa endpoint errado)
+      // Mas o ideal é receber o channel ID correto.
+      // Como esta função é genérica, vamos adicionar log
+      logger.error(`[FACEBOOK] Error sending text: ${JSON.stringify(message)}`);
+    } else {
+      logger.error(`[FACEBOOK] Error sending text: ${JSON.stringify(message)}`);
+    }
+    throw new Error("ERR_SENDING_FACEBOOK_MSG");
   }
 };
 
@@ -83,10 +95,12 @@ export const sendAttachmentFromUrl = async (
   id: string,
   url: string,
   type: string,
-  token: string
+  token: string,
+  senderId?: string
 ): Promise<void> => {
   try {
-    const { data } = await apiBase(token).post("me/messages", {
+    const endpoint = senderId ? `${senderId}/messages` : "me/messages";
+    const { data } = await apiBase(token).post(endpoint, {
       recipient: {
         id
       },
@@ -110,7 +124,8 @@ export const sendAttachment = async (
   id: string,
   file: Express.Multer.File,
   type: string,
-  token: string
+  token: string,
+  senderId?: string
 ): Promise<void> => {
   formData.append(
     "recipient",
@@ -136,7 +151,8 @@ export const sendAttachment = async (
   formData.append("filedata", fileReaderStream);
 
   try {
-    await apiBase(token).post("me/messages", formData, {
+    const endpoint = senderId ? `${senderId}/messages` : "me/messages";
+    await apiBase(token).post(endpoint, formData, {
       headers: {
         ...formData.getHeaders()
       }
@@ -169,30 +185,66 @@ export const getPageProfile = async (
   id: string,
   token: string
 ): Promise<any> => {
+  logger.info(`[FACEBOOK] getPageProfile - Starting request for user ID: ${id}`);
+  const startTime = Date.now();
+
   try {
+
     const { data } = await apiBase(token).get(
       `${id}/accounts?fields=name,access_token,instagram_business_account{id,username,profile_picture_url,name}`
     );
+    logger.info(`[FACEBOOK] getPageProfile - Success in ${Date.now() - startTime}ms, found ${data?.data?.length || 0} pages`);
     return data;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    logger.error(`[FACEBOOK] getPageProfile - Error after ${Date.now() - startTime}ms`);
+    logger.error(`[FACEBOOK] getPageProfile - Error details: ${error?.response?.data ? JSON.stringify(error.response.data) : error.message}`);
     throw new Error("ERR_FETCHING_FB_PAGES");
   }
 };
 
-export const profilePsid = async (id: string, token: string): Promise<any> => {
+export const profilePsid = async (id: string, token: string, channel?: string): Promise<any> => {
+  logger.info(`[FACEBOOK] profilePsid - Fetching profile for ID: ${id}, channel: ${channel || 'unknown'}`);
+
   try {
+    // Para Instagram, usamos campos específicos que são suportados
+    const fields = channel === 'instagram'
+      ? 'name,profile_pic'
+      : 'name,first_name,last_name,profile_pic';
+
     const { data } = await axios.get(
-      `https://graph.facebook.com/v18.0/${id}?access_token=${token}`
+      `https://graph.facebook.com/v18.0/${id}?fields=${fields}&access_token=${token}`,
+      { timeout: 30000 }
     );
+
+    logger.info(`[FACEBOOK] profilePsid - Success for ID ${id}: ${JSON.stringify(data)}`);
     return data;
-  } catch (error) {
-    console.log(error);
-    await getProfile(id, token);
+  } catch (error: any) {
+    logger.error(`[FACEBOOK] profilePsid - Error fetching profile for ID ${id}`);
+    logger.error(`[FACEBOOK] profilePsid - Error details: ${error?.response?.data ? JSON.stringify(error.response.data) : error.message}`);
+
+    // Para Instagram, retornar um perfil básico se falhar a busca
+    if (channel === 'instagram') {
+      logger.info(`[FACEBOOK] profilePsid - Returning basic profile for Instagram user ${id}`);
+      return {
+        id: id,
+        name: `Instagram User ${id.slice(-6)}`,
+        profile_pic: null
+      };
+    }
+
+    // Para Facebook, tentar o fallback com getProfile
+    try {
+      return await getProfile(id, token);
+    } catch (fallbackError) {
+      throw new Error("ERR_FETCHING_FB_USER_PROFILE_2");
+    }
   }
 };
 
 export const subscribeApp = async (id: string, token: string): Promise<any> => {
+  logger.info(`[FACEBOOK] subscribeApp - Starting subscription for page ID: ${id}`);
+  const startTime = Date.now();
+
   try {
     const { data } = await axios.post(
       `https://graph.facebook.com/v18.0/${id}/subscribed_apps?access_token=${token}`,
@@ -204,11 +256,14 @@ export const subscribeApp = async (id: string, token: string): Promise<any> => {
           "message_reads",
           "message_echoes"
         ]
-      }
+      },
+      { timeout: 30000 }
     );
+    logger.info(`[FACEBOOK] subscribeApp - Success in ${Date.now() - startTime}ms`);
     return data;
-  } catch (error) {
-    console.log(error)
+  } catch (error: any) {
+    logger.error(`[FACEBOOK] subscribeApp - Error after ${Date.now() - startTime}ms`);
+    logger.error(`[FACEBOOK] subscribeApp - Error details: ${error?.response?.data ? JSON.stringify(error.response.data) : error.message}`);
     throw new Error("ERR_SUBSCRIBING_PAGE_TO_MESSAGE_WEBHOOKS");
   }
 };
@@ -243,13 +298,16 @@ export const getSubscribedApps = async (
 export const getAccessTokenFromPage = async (
   token: string
 ): Promise<string> => {
-  try {
+  logger.info(`[FACEBOOK] getAccessTokenFromPage - Starting token exchange`);
+  const startTime = Date.now();
 
+  try {
     if (!token) throw new Error("ERR_FETCHING_FB_USER_TOKEN");
 
     const data = await axios.get(
       "https://graph.facebook.com/v18.0/oauth/access_token",
       {
+        timeout: 30000, // 30 segundos de timeout
         params: {
           client_id: process.env.FACEBOOK_APP_ID,
           client_secret: process.env.FACEBOOK_APP_SECRET,
@@ -259,9 +317,11 @@ export const getAccessTokenFromPage = async (
       }
     );
 
+    logger.info(`[FACEBOOK] getAccessTokenFromPage - Success in ${Date.now() - startTime}ms`);
     return data.data.access_token;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    logger.error(`[FACEBOOK] getAccessTokenFromPage - Error after ${Date.now() - startTime}ms`);
+    logger.error(`[FACEBOOK] getAccessTokenFromPage - Error details: ${error?.response?.data ? JSON.stringify(error.response.data) : error.message}`);
     throw new Error("ERR_FETCHING_FB_USER_TOKEN");
   }
 };

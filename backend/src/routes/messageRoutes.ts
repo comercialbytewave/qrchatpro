@@ -4,6 +4,7 @@ import isAuth from "../middleware/isAuth";
 import uploadConfig from "../config/upload";
 
 import * as MessageController from "../controllers/MessageController";
+import * as TranscribeAudioController from "../controllers/TranscribeAudioController";
 
 const messageRoutes = Router();
 
@@ -16,6 +17,10 @@ messageRoutes.delete("/messages/:messageId", isAuth, MessageController.remove);
 messageRoutes.post("/messages/edit/:messageId", isAuth, MessageController.edit);
 
 messageRoutes.get("/messages-allMe", isAuth, MessageController.allMe);
-messageRoutes.post('/message/forward', isAuth, MessageController.forwardMessage)
+messageRoutes.post('/message/forward', isAuth, MessageController.forwardMessage);
+
+// Audio transcription route
+messageRoutes.post("/messages/:messageId/transcribe", isAuth, TranscribeAudioController.transcribe);
 
 export default messageRoutes;
+

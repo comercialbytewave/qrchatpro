@@ -14,10 +14,13 @@ const sendFacebookMessage = async ({ body, ticket, quotedMsg }: Request): Promis
   const { number } = ticket.contact;
   try {
 
+    const senderId = ticket.channel === "instagram" ? ticket.whatsapp.facebookPageUserId : undefined;
+
     const send = await sendText(
       number,
       formatBody(body, ticket),
-      ticket.whatsapp.facebookUserToken
+      ticket.whatsapp.facebookUserToken,
+      senderId
     );
 
     await ticket.update({ lastMessage: body });

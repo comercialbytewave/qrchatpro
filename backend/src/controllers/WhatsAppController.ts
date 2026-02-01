@@ -196,6 +196,9 @@ export const storeFacebook = async (
   req: Request,
   res: Response
 ): Promise<Response> => {
+  const startTime = Date.now();
+  console.log(`[FACEBOOK] storeFacebook - Starting request`);
+
   try {
     const {
       facebookUserId,
@@ -208,6 +211,8 @@ export const storeFacebook = async (
     } = req.body;
     const { companyId } = req.user;
 
+    console.log(`[FACEBOOK] storeFacebook - Company ID: ${companyId}, User ID: ${facebookUserId}, addInstagram: ${addInstagram}`);
+
     // const company = await ShowCompanyService(companyId)
     // const plan = await ShowPlanService(company.planId);
 
@@ -217,9 +222,12 @@ export const storeFacebook = async (
     //   });
     // }
 
+    console.log(`[FACEBOOK] storeFacebook - Calling getPageProfile...`);
     const { data } = await getPageProfile(facebookUserId, facebookUserToken);
+    console.log(`[FACEBOOK] storeFacebook - getPageProfile completed in ${Date.now() - startTime}ms, found ${data?.length || 0} pages`);
 
     if (data.length === 0) {
+      console.log(`[FACEBOOK] storeFacebook - No pages found, returning 400`);
       return res.status(400).json({
         error: "Facebook page not found"
       });
@@ -229,11 +237,15 @@ export const storeFacebook = async (
     const pages = [];
     for await (const page of data) {
       const { name, access_token, id, instagram_business_account } = page;
+      console.log(`[FACEBOOK] storeFacebook - Processing page: ${name} (ID: ${id})`);
 
+      console.log(`[FACEBOOK] storeFacebook - Calling getAccessTokenFromPage for page ${name}...`);
       const acessTokenPage = await getAccessTokenFromPage(access_token);
+      console.log(`[FACEBOOK] storeFacebook - getAccessTokenFromPage completed for page ${name}`);
 
       if (instagram_business_account && addInstagram) {
         const { id: instagramId, username, name: instagramName } = instagram_business_account;
+        console.log(`[FACEBOOK] storeFacebook - Found Instagram account: ${username || instagramName} (ID: ${instagramId})`);
 
         pages.push({
           companyId,
@@ -267,7 +279,9 @@ export const storeFacebook = async (
           isMultidevice: false
         });
 
+        console.log(`[FACEBOOK] storeFacebook - Calling subscribeApp for page ${id}...`);
         await subscribeApp(id, acessTokenPage);
+        console.log(`[FACEBOOK] storeFacebook - subscribeApp completed for page ${id}`);
       }
 
       if (!instagram_business_account) {
@@ -287,11 +301,14 @@ export const storeFacebook = async (
           isMultidevice: false
         });
 
+        console.log(`[FACEBOOK] storeFacebook - Calling subscribeApp for page ${page.id}...`);
         await subscribeApp(page.id, acessTokenPage);
+        console.log(`[FACEBOOK] storeFacebook - subscribeApp completed for page ${page.id}`);
       }
 
     }
 
+    console.log(`[FACEBOOK] storeFacebook - Processing ${pages.length} pages for database...`);
     for await (const pageConection of pages) {
 
       const exist = await Whatsapp.findOne({
@@ -301,12 +318,14 @@ export const storeFacebook = async (
       });
 
       if (exist) {
+        console.log(`[FACEBOOK] storeFacebook - Updating existing page: ${pageConection.name}`);
         await exist.update({
           ...pageConection
         });
       }
 
       if (!exist) {
+        console.log(`[FACEBOOK] storeFacebook - Creating new page: ${pageConection.name}`);
         const { whatsapp } = await CreateWhatsAppService(pageConection);
 
         io.of(String(companyId))
@@ -317,9 +336,10 @@ export const storeFacebook = async (
 
       }
     }
-    return res.status(200);
+    console.log(`[FACEBOOK] storeFacebook - Completed successfully in ${Date.now() - startTime}ms`);
+    return res.status(200).json({ success: true, pagesProcessed: pages.length });
   } catch (error) {
-    console.log(error);
+    console.log(`[FACEBOOK] storeFacebook - Error after ${Date.now() - startTime}ms:`, error);
     return res.status(400).json({
       error: "Facebook page not found"
     });

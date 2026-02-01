@@ -69,7 +69,7 @@ services:
       - FACEBOOK_APP_SECRET=b9886bfcab47ca4d0bfe1e44a1b37a60
       - MAIL_HOST=smtp.gmail.com
       - MAIL_USER=comercialbytewave@gmail.com
-      - MAIL_PASS=Wa@13851424
+      - MAIL_PASS=
       - MAIL_FROM=comercialbytewave@gmail.com
       - MAIL_PORT=467
     volumes:

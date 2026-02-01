@@ -576,661 +576,669 @@ const MessagesList = ({
     setPageNumber((prevPageNumber) => prevPageNumber + 1);
   };
 
-const scrollToBottom = () => {
-  setTimeout(() => {
-    if (lastMessageRef.current) {
-      lastMessageRef.current.scrollIntoView({});
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      if (lastMessageRef.current) {
+        lastMessageRef.current.scrollIntoView({});
+      }
+    }, 100);
+  };
+
+  const handleScroll = (e) => {
+    if (!hasMore) return;
+    const { scrollTop } = e.currentTarget;
+
+    if (scrollTop === 0) {
+      document.getElementById("messagesList").scrollTop = 1;
     }
-  }, 100);
-};
 
-const handleScroll = (e) => {
-  if (!hasMore) return;
-  const { scrollTop } = e.currentTarget;
+    if (loading) {
+      return;
+    }
 
-  if (scrollTop === 0) {
-    document.getElementById("messagesList").scrollTop = 1;
-  }
+    if (scrollTop < 50) {
+      loadMore();
+    }
+  };
 
-  if (loading) {
-    return;
-  }
+  const handleOpenMessageOptionsMenu = (e, message) => {
+    setAnchorEl(e.currentTarget);
+    setSelectedMessage(message);
+  };
 
-  if (scrollTop < 50) {
-    loadMore();
-  }
-};
+  const handleCloseMessageOptionsMenu = (e) => {
+    setAnchorEl(null);
+  };
 
-const handleOpenMessageOptionsMenu = (e, message) => {
-  setAnchorEl(e.currentTarget);
-  setSelectedMessage(message);
-};
+  const hanldeReplyMessage = (e, message) => {
+    //if (ticket.status === "open" || ticket.status === "group") {
+    setAnchorEl(null);
+    setReplyingMessage(message);
+    //}
+  };
 
-const handleCloseMessageOptionsMenu = (e) => {
-  setAnchorEl(null);
-};
+  const checkMessageMedia = (message) => {
+    console.log(message)
+    if (message.mediaType === "locationMessage" && message.body.split('|').length >= 2) {
+      let locationParts = message.body.split('|')
+      let imageLocation = locationParts[0]
+      let linkLocation = locationParts[1]
 
-const hanldeReplyMessage = (e, message) => {
-  //if (ticket.status === "open" || ticket.status === "group") {
-  setAnchorEl(null);
-  setReplyingMessage(message);
-  //}
-};
+      let descriptionLocation = null
 
-const checkMessageMedia = (message) => {
-  console.log(message)
-  if (message.mediaType === "locationMessage" && message.body.split('|').length >= 2) {
-    let locationParts = message.body.split('|')
-    let imageLocation = locationParts[0]
-    let linkLocation = locationParts[1]
+      if (locationParts.length > 2)
+        descriptionLocation = message.body.split('|')[2]
 
-    let descriptionLocation = null
+      return <LocationPreview image={imageLocation} link={linkLocation} description={descriptionLocation} />
+    } else
 
-    if (locationParts.length > 2)
-      descriptionLocation = message.body.split('|')[2]
-
-    return <LocationPreview image={imageLocation} link={linkLocation} description={descriptionLocation} />
-  } else
-
-    if (message.mediaType === "contactMessage") {
-      let array = message.body.split("\n");
-      let obj = [];
-      let contact = "";
-      for (let index = 0; index < array.length; index++) {
-        const v = array[index];
-        let values = v.split(":");
-        for (let ind = 0; ind < values.length; ind++) {
-          if (values[ind].indexOf("+") !== -1) {
-            obj.push({ number: values[ind] });
-          }
-          if (values[ind].indexOf("FN") !== -1) {
-            contact = values[ind + 1];
+      if (message.mediaType === "contactMessage") {
+        let array = message.body.split("\n");
+        let obj = [];
+        let contact = "";
+        for (let index = 0; index < array.length; index++) {
+          const v = array[index];
+          let values = v.split(":");
+          for (let ind = 0; ind < values.length; ind++) {
+            if (values[ind].indexOf("+") !== -1) {
+              obj.push({ number: values[ind] });
+            }
+            if (values[ind].indexOf("FN") !== -1) {
+              contact = values[ind + 1];
+            }
           }
         }
-      }
-      // console.log(message)
-      return <VcardPreview contact={contact} numbers={obj[0]?.number} queueId={message?.ticket?.queueId} whatsappId={message?.ticket?.whatsappId} />
-    } else
-
-      if (message.mediaType === "image") {
-        return <ModalImageCors imageUrl={message.mediaUrl} />;
+        // console.log(message)
+        return <VcardPreview contact={contact} numbers={obj[0]?.number} queueId={message?.ticket?.queueId} whatsappId={message?.ticket?.whatsappId} />
       } else
 
-        if (message.mediaType === "audio") {
-          return (
-            <AudioModal url={message.mediaUrl} />
-            // <audio controls>
-            //   <source src={message.mediaUrl} type="audio/ogg"></source>
-            //   {/* <source src={message.mediaUrl} type="audio/mp3"></source> */}
-            // </audio>
-          );
+        if (message.mediaType === "image") {
+          return <ModalImageCors imageUrl={message.mediaUrl} />;
         } else
 
-          if (message.mediaType === "video") {
+          if (message.mediaType === "audio") {
             return (
-              <video
-                className={classes.messageMedia}
-                src={message.mediaUrl}
-                controls
+              <AudioModal
+                url={message.mediaUrl}
+                messageId={message.id}
+                initialTranscription={message.transcription}
               />
+              // <audio controls>
+              //   <source src={message.mediaUrl} type="audio/ogg"></source>
+              //   {/* <source src={message.mediaUrl} type="audio/mp3"></source> */}
+              // </audio>
             );
-          } else {
-            return (
-              <>
-                <div className={classes.downloadMedia}>
-                  <Button
-                    startIcon={<GetApp />}
-                    variant="outlined"
-                    target="_blank"
-                    href={message.mediaUrl}
-                  >
-                    Download
-                  </Button>
-                </div>
-                <Divider />
-              </>
-            );
-          }
-};
+          } else
 
-const renderMessageAck = (message) => {
-  if (message.ack === 0) {
-    return <AccessTime fontSize="small" className={classes.ackIcons} />;
-  } else
-    if (message.ack === 1) {
-      return <Done fontSize="small" className={classes.ackIcons} />;
+            if (message.mediaType === "video") {
+              return (
+                <video
+                  className={classes.messageMedia}
+                  src={message.mediaUrl}
+                  controls
+                />
+              );
+            } else {
+              return (
+                <>
+                  <div className={classes.downloadMedia}>
+                    <Button
+                      startIcon={<GetApp />}
+                      variant="outlined"
+                      target="_blank"
+                      href={message.mediaUrl}
+                    >
+                      Download
+                    </Button>
+                  </div>
+                  <Divider />
+                </>
+              );
+            }
+  };
+
+  const renderMessageAck = (message) => {
+    if (message.ack === 0) {
+      return <AccessTime fontSize="small" className={classes.ackIcons} />;
     } else
-      if (message.ack === 2) {
-        return <DoneAll fontSize="small" className={classes.ackIcons} />;
+      if (message.ack === 1) {
+        return <Done fontSize="small" className={classes.ackIcons} />;
       } else
-        if (message.ack === 3 || message.ack === 4) {
-          return <DoneAll fontSize="small" className={message.mediaType === "audio" ? classes.ackPlayedIcon : classes.ackDoneAllIcon} />;
+        if (message.ack === 2) {
+          return <DoneAll fontSize="small" className={classes.ackIcons} />;
         } else
-          if (message.ack === 5) {
-            return <DoneAll fontSize="small" className={classes.ackDoneAllIcon} />
-          }
-};
+          if (message.ack === 3 || message.ack === 4) {
+            return <DoneAll fontSize="small" className={message.mediaType === "audio" ? classes.ackPlayedIcon : classes.ackDoneAllIcon} />;
+          } else
+            if (message.ack === 5) {
+              return <DoneAll fontSize="small" className={classes.ackDoneAllIcon} />
+            }
+  };
 
-const renderDailyTimestamps = (message, index) => {
-  const today = format(new Date(), "dd/MM/yyyy")
+  const renderDailyTimestamps = (message, index) => {
+    const today = format(new Date(), "dd/MM/yyyy")
 
-  if (index === 0) {
-    return (
-      <span
-        className={classes.dailyTimestamp}
-        key={`timestamp-${message.id}`}
-      >
-        <div className={classes.dailyTimestampText}>
-          {today === format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy") ? "HOJE" : format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy")}
-        </div>
-      </span>
-    );
-  } else
-    if (index < messagesList.length - 1) {
-      let messageDay = parseISO(messagesList[index].createdAt);
-      let previousMessageDay = parseISO(messagesList[index - 1].createdAt);
+    if (index === 0) {
+      return (
+        <span
+          className={classes.dailyTimestamp}
+          key={`timestamp-${message.id}`}
+        >
+          <div className={classes.dailyTimestampText}>
+            {today === format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy") ? "HOJE" : format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy")}
+          </div>
+        </span>
+      );
+    } else
+      if (index < messagesList.length - 1) {
+        let messageDay = parseISO(messagesList[index].createdAt);
+        let previousMessageDay = parseISO(messagesList[index - 1].createdAt);
 
-      if (!isSameDay(messageDay, previousMessageDay)) {
+        if (!isSameDay(messageDay, previousMessageDay)) {
+          return (
+            <span
+              className={classes.dailyTimestamp}
+              key={`timestamp-${message.id}`}
+            >
+              <div className={classes.dailyTimestampText}>
+                {today === format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy") ? "HOJE" : format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy")}
+              </div>
+            </span>
+          );
+        }
+      } else
+        if (index === messagesList.length - 1) {
+          return (
+            <div
+              key={`ref-${message.id}`}
+              ref={lastMessageRef}
+              style={{ float: "left", clear: "both" }}
+            />
+          );
+        }
+  };
+
+
+  const renderTicketsSeparator = (message, index) => {
+    let lastTicket = messagesList[index - 1]?.ticketId;
+    let currentTicket = message.ticketId;
+
+    if (lastTicket !== currentTicket && lastTicket !== undefined) {
+      if (message?.ticket?.queue) {
         return (
           <span
-            className={classes.dailyTimestamp}
-            key={`timestamp-${message.id}`}
+            className={classes.currentTick}
+            key={`timestamp-${message.id}a`}
           >
-            <div className={classes.dailyTimestampText}>
-              {today === format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy") ? "HOJE" : format(parseISO(messagesList[index].createdAt), "dd/MM/yyyy")}
-            </div>
-          </span>
-        );
-      }
-    } else
-      if (index === messagesList.length - 1) {
-        return (
-          <div
-            key={`ref-${message.id}`}
-            ref={lastMessageRef}
-            style={{ float: "left", clear: "both" }}
-          />
-        );
-      }
-};
-
-
-const renderTicketsSeparator = (message, index) => {
-  let lastTicket = messagesList[index - 1]?.ticketId;
-  let currentTicket = message.ticketId;
-
-  if (lastTicket !== currentTicket && lastTicket !== undefined) {
-    if (message?.ticket?.queue) {
-      return (
-        <span
-          className={classes.currentTick}
-          key={`timestamp-${message.id}a`}
-        >
-          <div
-            className={classes.currentTicktText}
-            style={{ backgroundColor: message?.ticket?.queue?.color || "grey" }}
-          >
-            #{i18n.t("ticketsList.called")} {message?.ticketId} - {message?.ticket?.queue?.name}
-          </div>
-
-        </span>
-      );
-    } else {
-      return (
-        <span
-          className={classes.currentTick}
-          key={`timestamp-${message.id}b`}
-        >
-          <div
-            className={classes.currentTicktText}
-            style={{ backgroundColor: "grey" }}
-          >
-            #{i18n.t("ticketsList.called")} {message.ticketId} - {i18n.t("ticketsList.noQueue")}
-          </div>
-
-        </span>
-      );
-    }
-  }
-
-};
-
-const renderMessageDivider = (message, index) => {
-  if (index < messagesList.length && index > 0) {
-    let messageUser = messagesList[index].fromMe;
-    let previousMessageUser = messagesList[index - 1].fromMe;
-    if (messageUser !== previousMessageUser) {
-      return (
-
-        <span style={{ marginTop: 16 }} key={`divider-${message.id}`}></span>
-      );
-    }
-  }
-};
-
-const path = require('path');
-
-const renderQuotedMessage = (message) => {
-
-  return (
-    <div
-      className={clsx(classes.quotedContainerLeft, {
-        [classes.quotedContainerRight]: message.fromMe,
-      })}
-    >
-      <span
-        className={clsx(classes.quotedSideColorLeft, {
-          [classes.quotedSideColorRight]: message.quotedMsg?.fromMe,
-        })}
-      ></span>
-      <div className={classes.quotedMsg}>
-        {!message.quotedMsg?.fromMe && (
-          <span className={classes.messageContactName}>
-            {message.quotedMsg?.contact?.name}
-          </span>
-        )}
-
-        {message.quotedMsg.mediaType === "audio"
-          && (
-            <div className={classes.downloadMedia}>
-              <AudioModal url={message.quotedMsg.mediaUrl} />
-
-              {/* <audio controls>
-                  <source src={message.quotedMsg.mediaUrl} type="audio/mp3"></source>
-                  {/* <source src={message.quotedMsg.mediaUrl} type="audio/ogg"></source> 
-                </audio> */}
-            </div>
-          )
-        }
-        {message.quotedMsg.mediaType === "video"
-          && (
-            <video
-              className={classes.messageMedia}
-              src={message.quotedMsg.mediaUrl}
-              controls
-            />
-          )
-        }
-        {message.quotedMsg.mediaType === "contactMessage"
-          && (
-            "Contato"
-          )
-        }
-        {message.quotedMsg.mediaType === "application"
-          && (
-            <div className={classes.downloadMedia}>
-              <Button
-                startIcon={<GetApp />}
-                // color="primary"
-                variant="outlined"
-                target="_blank"
-                href={message.quotedMsg.mediaUrl}
-              >
-                Download
-              </Button>
-            </div>
-          )
-        }
-
-        {message.quotedMsg.mediaType === "image"
-          && (
-            <ModalImageCors imageUrl={message.quotedMsg.mediaUrl} />)
-          || message.quotedMsg?.body}
-
-        {!message.quotedMsg.mediaType === "image" && message.quotedMsg?.body}
-
-
-      </div>
-    </div>
-  );
-};
-
-const handleDrag = event => {
-  event.preventDefault();
-  event.stopPropagation();
-  if (event.type === "dragenter" || event.type === "dragover") {
-    setDragActive(true);
-  } else if (event.type === "dragleave") {
-    setDragActive(false);
-  }
-}
-
-const isYouTubeLink = (url) => {
-  const youtubeRegex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  return youtubeRegex.test(url);
-};
-
-const handleDrop = event => {
-  event.preventDefault();
-  event.stopPropagation();
-  setDragActive(false);
-  if (event.dataTransfer.files && event.dataTransfer.files[0]) {
-    if (onDrop) {
-      onDrop(event.dataTransfer.files);
-    }
-  }
-}
-const xmlRegex = /<([^>]+)>/g;
-const boldRegex = /\*(.*?)\*/g;
-
-const formatXml = (xmlString) => {
-  // Verifica se o XML contém a assinatura com nome do atendente
-  if (boldRegex.test(xmlString)) {
-    // Formata o texto dentro da assinatura em negrito
-    xmlString = xmlString.replace(boldRegex, "**$1**");
-  }
-  return xmlString;
-};
-
-const renderMessages = () => {
-
-  if (messagesList.length > 0) {
-    const viewMessagesList = messagesList.map((message, index) => {
-      if (message.mediaType === "call_log") {
-        return (
-          <React.Fragment key={message.id}>
-            {renderDailyTimestamps(message, index)}
-            {renderTicketsSeparator(message, index)}
-            {renderMessageDivider(message, index)}
-            <div className={classes.messageCenter}>
-              <IconButton
-                variant="contained"
-                size="small"
-                id="messageActionsButton"
-                disabled={message.isDeleted}
-                className={classes.messageActionsButton}
-                onClick={(e) => handleOpenMessageOptionsMenu(e, message)}
-              >
-                <ExpandMore />
-              </IconButton>
-              {isGroup && (
-                <span className={classes.messageContactName}>
-                  {message.contact?.name}
-                </span>
-              )}
-
-              {/* {isGroup && (
-                  <span className={classes.messageContactName}>
-                    {JSON.parse(message.dataJson).pushName} #{message.contact?.name}
-                  </span>
-                )} */}
-              <div>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 17" width="20" height="17">
-                  <path fill="#df3333" d="M18.2 12.1c-1.5-1.8-5-2.7-8.2-2.7s-6.7 1-8.2 2.7c-.7.8-.3 2.3.2 2.8.2.2.3.3.5.3 1.4 0 3.6-.7 3.6-.7.5-.2.8-.5.8-1v-1.3c.7-1.2 5.4-1.2 6.4-.1l.1.1v1.3c0 .2.1.4.2.6.1.2.3.3.5.4 0 0 2.2.7 3.6.7.2 0 1.4-2 .5-3.1zM5.4 3.2l4.7 4.6 5.8-5.7-.9-.8L10.1 6 6.4 2.3h2.5V1H4.1v4.8h1.3V3.2z"></path>
-                </svg> <span>{i18n.t("ticketsList.missedCall")} {format(parseISO(message.createdAt), "HH:mm")}</span>
-              </div>
-            </div>
-          </React.Fragment>
-        );
-      }
-
-      if (!message.fromMe) {
-        return (
-          <React.Fragment key={message.id}>
-            {renderDailyTimestamps(message, index)}
-            {renderTicketsSeparator(message, index)}
-            {renderMessageDivider(message, index)}
             <div
-              className={classes.messageLeft}
-              title={message.queueId && message.queue?.name}
-              onDoubleClick={(e) => hanldeReplyMessage(e, message)}
+              className={classes.currentTicktText}
+              style={{ backgroundColor: message?.ticket?.queue?.color || "grey" }}
             >
-              {showSelectMessageCheckbox && (
-                <SelectMessageCheckbox
-                  // showSelectMessageCheckbox={showSelectMessageCheckbox}
-                  message={message}
-                // selectedMessagesList={selectedMessagesList}
-                // setSelectedMessagesList={setSelectedMessagesList}
-                />
-              )}
-              <IconButton
-                variant="contained"
-                size="small"
-                id="messageActionsButton"
-                disabled={message.isDeleted}
-                className={classes.messageActionsButton}
-                onClick={(e) => handleOpenMessageOptionsMenu(e, message)}
-              >
-                <ExpandMore />
-              </IconButton>
-
-              {message.isForwarded && (
-                <div>
-                  <span className={classes.forwardMessage}
-                  ><Reply style={{ color: "grey", transform: 'scaleX(-1)' }} /> Encaminhada
-                  </span>
-                  <br />
-                </div>
-              )}
-              {isGroup && (
-                <span className={classes.messageContactName}>
-                  {message.contact?.name}
-                </span>
-              )}
-              {isYouTubeLink(message.body) && (
-                <>
-                  <YouTubePreview videoUrl={message.body} />
-                </>
-              )}
-              {/* {isGroup && (
-                  <span className={classes.messageContactName}>
-                    {JSON.parse(message.dataJson).pushName} #{message.contact?.name}
-                  </span>
-                )} */}
-
-              {/* aviso de mensagem apagado pelo contato */}
-
-              {!lgpdDeleteMessage && message.isDeleted && (
-                <div>
-                  <span className={classes.deletedMessage}
-                  >🚫 Essa mensagem foi apagada pelo contato &nbsp;
-                  </span>
-                </div>
-              )}
-
-              {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage"
-                //|| message.mediaType === "multi_vcard" 
-              ) && checkMessageMedia(message)}
-
-              <div className={clsx(classes.textContentItem, {
-                [classes.textContentItemDeleted]: message.isDeleted,
-              })}>
-                {message.quotedMsg && renderQuotedMessage(message)}
-                {
-                  (
-                    (message.mediaUrl !== null && (message.mediaType === "image" || message.mediaType === "video") && path.basename(message.mediaUrl).trim() !== message.body.trim()) ||
-                    message.mediaType !== "audio" &&
-                    message.mediaType !== "image" &&
-                    message.mediaType !== "video" &&
-                    message.mediaType != "reactionMessage" &&
-                    message.mediaType != "locationMessage" && message.mediaType !== "contactMessage") && (
-                    <>
-                      {xmlRegex.test(message.body) && (
-                        <span>{message.body}</span>
-
-                      )}
-                      {!xmlRegex.test(message.body) && (
-                        <MarkdownWrapper>{(lgpdDeleteMessage && message.isDeleted) ? "🚫 _Mensagem apagada_ " :
-                          message.body
-                        }</MarkdownWrapper>)}
-
-                    </>
-
-                  )}
-
-                {message.quotedMsg && message.mediaType === "reactionMessage" && (
-                  <>
-                    <span style={{ marginLeft: "0px" }}>
-                      <MarkdownWrapper>
-                        {"" + message?.contact?.name + " reagiu... " + message.body}
-                      </MarkdownWrapper>
-                    </span>
-                  </>
-                )}
-
-                <span className={classes.timestamp}>
-                  {message.isEdited ? "Editada " + format(parseISO(message.createdAt), "HH:mm") : format(parseISO(message.createdAt), "HH:mm")}
-                </span>
-              </div>
+              #{i18n.t("ticketsList.called")} {message?.ticketId} - {message?.ticket?.queue?.name}
             </div>
-          </React.Fragment>
+
+          </span>
         );
       } else {
         return (
-          <React.Fragment key={message.id}>
-            {renderDailyTimestamps(message, index)}
-            {renderTicketsSeparator(message, index)}
-            {renderMessageDivider(message, index)}
+          <span
+            className={classes.currentTick}
+            key={`timestamp-${message.id}b`}
+          >
             <div
-              className={message.isPrivate ? classes.messageRightPrivate : classes.messageRight}
-              title={message.queueId && message.queue?.name}
-              onDoubleClick={(e) => hanldeReplyMessage(e, message)}
+              className={classes.currentTicktText}
+              style={{ backgroundColor: "grey" }}
             >
-              {showSelectMessageCheckbox && (
-                <SelectMessageCheckbox
-                  // showSelectMessageCheckbox={showSelectMessageCheckbox}
-                  message={message}
-                // selectedMessagesList={selectedMessagesList}
-                // setSelectedMessagesList={setSelectedMessagesList}
+              #{i18n.t("ticketsList.called")} {message.ticketId} - {i18n.t("ticketsList.noQueue")}
+            </div>
+
+          </span>
+        );
+      }
+    }
+
+  };
+
+  const renderMessageDivider = (message, index) => {
+    if (index < messagesList.length && index > 0) {
+      let messageUser = messagesList[index].fromMe;
+      let previousMessageUser = messagesList[index - 1].fromMe;
+      if (messageUser !== previousMessageUser) {
+        return (
+
+          <span style={{ marginTop: 16 }} key={`divider-${message.id}`}></span>
+        );
+      }
+    }
+  };
+
+  const path = require('path');
+
+  const renderQuotedMessage = (message) => {
+
+    return (
+      <div
+        className={clsx(classes.quotedContainerLeft, {
+          [classes.quotedContainerRight]: message.fromMe,
+        })}
+      >
+        <span
+          className={clsx(classes.quotedSideColorLeft, {
+            [classes.quotedSideColorRight]: message.quotedMsg?.fromMe,
+          })}
+        ></span>
+        <div className={classes.quotedMsg}>
+          {!message.quotedMsg?.fromMe && (
+            <span className={classes.messageContactName}>
+              {message.quotedMsg?.contact?.name}
+            </span>
+          )}
+
+          {message.quotedMsg.mediaType === "audio"
+            && (
+              <div className={classes.downloadMedia}>
+                <AudioModal
+                  url={message.quotedMsg.mediaUrl}
+                  messageId={message.quotedMsg.id}
+                  initialTranscription={message.quotedMsg.transcription}
                 />
-              )}
 
-              <IconButton
-                variant="contained"
-                size="small"
-                id="messageActionsButton"
-                disabled={message.isDeleted}
-                className={classes.messageActionsButton}
-                onClick={(e) => handleOpenMessageOptionsMenu(e, message)}
-              >
-                <ExpandMore />
-              </IconButton>
-              {message.isForwarded && (
-                <div>
-                  <span className={classes.forwardMessage}
-                  ><Reply style={{ color: "grey", transform: 'scaleX(-1)' }} /> Encaminhada
+                {/* <audio controls>
+                  <source src={message.quotedMsg.mediaUrl} type="audio/mp3"></source>
+                  {/* <source src={message.quotedMsg.mediaUrl} type="audio/ogg"></source> 
+                </audio> */}
+              </div>
+            )
+          }
+          {message.quotedMsg.mediaType === "video"
+            && (
+              <video
+                className={classes.messageMedia}
+                src={message.quotedMsg.mediaUrl}
+                controls
+              />
+            )
+          }
+          {message.quotedMsg.mediaType === "contactMessage"
+            && (
+              "Contato"
+            )
+          }
+          {message.quotedMsg.mediaType === "application"
+            && (
+              <div className={classes.downloadMedia}>
+                <Button
+                  startIcon={<GetApp />}
+                  // color="primary"
+                  variant="outlined"
+                  target="_blank"
+                  href={message.quotedMsg.mediaUrl}
+                >
+                  Download
+                </Button>
+              </div>
+            )
+          }
+
+          {message.quotedMsg.mediaType === "image"
+            && (
+              <ModalImageCors imageUrl={message.quotedMsg.mediaUrl} />)
+            || message.quotedMsg?.body}
+
+          {!message.quotedMsg.mediaType === "image" && message.quotedMsg?.body}
+
+
+        </div>
+      </div>
+    );
+  };
+
+  const handleDrag = event => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === "dragenter" || event.type === "dragover") {
+      setDragActive(true);
+    } else if (event.type === "dragleave") {
+      setDragActive(false);
+    }
+  }
+
+  const isYouTubeLink = (url) => {
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    return youtubeRegex.test(url);
+  };
+
+  const handleDrop = event => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragActive(false);
+    if (event.dataTransfer.files && event.dataTransfer.files[0]) {
+      if (onDrop) {
+        onDrop(event.dataTransfer.files);
+      }
+    }
+  }
+  const xmlRegex = /<([^>]+)>/g;
+  const boldRegex = /\*(.*?)\*/g;
+
+  const formatXml = (xmlString) => {
+    // Verifica se o XML contém a assinatura com nome do atendente
+    if (boldRegex.test(xmlString)) {
+      // Formata o texto dentro da assinatura em negrito
+      xmlString = xmlString.replace(boldRegex, "**$1**");
+    }
+    return xmlString;
+  };
+
+  const renderMessages = () => {
+
+    if (messagesList.length > 0) {
+      const viewMessagesList = messagesList.map((message, index) => {
+        if (message.mediaType === "call_log") {
+          return (
+            <React.Fragment key={message.id}>
+              {renderDailyTimestamps(message, index)}
+              {renderTicketsSeparator(message, index)}
+              {renderMessageDivider(message, index)}
+              <div className={classes.messageCenter}>
+                <IconButton
+                  variant="contained"
+                  size="small"
+                  id="messageActionsButton"
+                  disabled={message.isDeleted}
+                  className={classes.messageActionsButton}
+                  onClick={(e) => handleOpenMessageOptionsMenu(e, message)}
+                >
+                  <ExpandMore />
+                </IconButton>
+                {isGroup && (
+                  <span className={classes.messageContactName}>
+                    {message.contact?.name}
                   </span>
-                  <br />
-                </div>
-              )}
-              {isYouTubeLink(message.body) && (
-                <>
-                  <YouTubePreview videoUrl={message.body} />
-                </>
-              )}
-              {!lgpdDeleteMessage && message.isDeleted && (
-                <div>
-                  <span className={classes.deletedMessage}
-                  >🚫 Essa mensagem foi apagada &nbsp;
+                )}
+
+                {/* {isGroup && (
+                  <span className={classes.messageContactName}>
+                    {JSON.parse(message.dataJson).pushName} #{message.contact?.name}
                   </span>
+                )} */}
+                <div>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 17" width="20" height="17">
+                    <path fill="#df3333" d="M18.2 12.1c-1.5-1.8-5-2.7-8.2-2.7s-6.7 1-8.2 2.7c-.7.8-.3 2.3.2 2.8.2.2.3.3.5.3 1.4 0 3.6-.7 3.6-.7.5-.2.8-.5.8-1v-1.3c.7-1.2 5.4-1.2 6.4-.1l.1.1v1.3c0 .2.1.4.2.6.1.2.3.3.5.4 0 0 2.2.7 3.6.7.2 0 1.4-2 .5-3.1zM5.4 3.2l4.7 4.6 5.8-5.7-.9-.8L10.1 6 6.4 2.3h2.5V1H4.1v4.8h1.3V3.2z"></path>
+                  </svg> <span>{i18n.t("ticketsList.missedCall")} {format(parseISO(message.createdAt), "HH:mm")}</span>
                 </div>
-              )}
-              {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage"
-                //|| message.mediaType === "multi_vcard" 
-              ) && checkMessageMedia(message)}
+              </div>
+            </React.Fragment>
+          );
+        }
+
+        if (!message.fromMe) {
+          return (
+            <React.Fragment key={message.id}>
+              {renderDailyTimestamps(message, index)}
+              {renderTicketsSeparator(message, index)}
+              {renderMessageDivider(message, index)}
               <div
-                className={clsx(classes.textContentItem, {
-                  [classes.textContentItemDeleted]: message.isDeleted,
-                })}
+                className={classes.messageLeft}
+                title={message.queueId && message.queue?.name}
+                onDoubleClick={(e) => hanldeReplyMessage(e, message)}
               >
+                {showSelectMessageCheckbox && (
+                  <SelectMessageCheckbox
+                    // showSelectMessageCheckbox={showSelectMessageCheckbox}
+                    message={message}
+                  // selectedMessagesList={selectedMessagesList}
+                  // setSelectedMessagesList={setSelectedMessagesList}
+                  />
+                )}
+                <IconButton
+                  variant="contained"
+                  size="small"
+                  id="messageActionsButton"
+                  disabled={message.isDeleted}
+                  className={classes.messageActionsButton}
+                  onClick={(e) => handleOpenMessageOptionsMenu(e, message)}
+                >
+                  <ExpandMore />
+                </IconButton>
 
-                {/* {message.isDeleted && (`🚫`)} */}
+                {message.isForwarded && (
+                  <div>
+                    <span className={classes.forwardMessage}
+                    ><Reply style={{ color: "grey", transform: 'scaleX(-1)' }} /> Encaminhada
+                    </span>
+                    <br />
+                  </div>
+                )}
+                {isGroup && (
+                  <span className={classes.messageContactName}>
+                    {message.contact?.name}
+                  </span>
+                )}
+                {isYouTubeLink(message.body) && (
+                  <>
+                    <YouTubePreview videoUrl={message.body} />
+                  </>
+                )}
+                {/* {isGroup && (
+                  <span className={classes.messageContactName}>
+                    {JSON.parse(message.dataJson).pushName} #{message.contact?.name}
+                  </span>
+                )} */}
 
+                {/* aviso de mensagem apagado pelo contato */}
 
+                {!lgpdDeleteMessage && message.isDeleted && (
+                  <div>
+                    <span className={classes.deletedMessage}
+                    >🚫 Essa mensagem foi apagada pelo contato &nbsp;
+                    </span>
+                  </div>
+                )}
 
-                {message.quotedMsg && renderQuotedMessage(message)}
+                {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage"
+                  //|| message.mediaType === "multi_vcard" 
+                ) && checkMessageMedia(message)}
 
-                {
-                  ((message.mediaType === "image" || message.mediaType === "video") && path.basename(message.mediaUrl) === message.body) ||
-                  (message.mediaType !== "audio" && message.mediaType != "reactionMessage" && message.mediaType != "locationMessage" && message.mediaType !== "contactMessage") && (
+                <div className={clsx(classes.textContentItem, {
+                  [classes.textContentItemDeleted]: message.isDeleted,
+                })}>
+                  {message.quotedMsg && renderQuotedMessage(message)}
+                  {
+                    (
+                      (message.mediaUrl !== null && (message.mediaType === "image" || message.mediaType === "video") && path.basename(message.mediaUrl).trim() !== message.body.trim()) ||
+                      message.mediaType !== "audio" &&
+                      message.mediaType !== "image" &&
+                      message.mediaType !== "video" &&
+                      message.mediaType != "reactionMessage" &&
+                      message.mediaType != "locationMessage" && message.mediaType !== "contactMessage") && (
+                      <>
+                        {xmlRegex.test(message.body) && (
+                          <span>{message.body}</span>
+
+                        )}
+                        {!xmlRegex.test(message.body) && (
+                          <MarkdownWrapper>{(lgpdDeleteMessage && message.isDeleted) ? "🚫 _Mensagem apagada_ " :
+                            message.body
+                          }</MarkdownWrapper>)}
+
+                      </>
+
+                    )}
+
+                  {message.quotedMsg && message.mediaType === "reactionMessage" && (
                     <>
-                      {xmlRegex.test(message.body) && (
-                        <div>{formatXml(message.body)}</div>
-
-                      )}
-                      {!xmlRegex.test(message.body) && (<MarkdownWrapper>{message.body}</MarkdownWrapper>)}
-
+                      <span style={{ marginLeft: "0px" }}>
+                        <MarkdownWrapper>
+                          {"" + message?.contact?.name + " reagiu... " + message.body}
+                        </MarkdownWrapper>
+                      </span>
                     </>
                   )}
 
-                {message.quotedMsg && message.mediaType === "reactionMessage" && (
-                  <>
-                    <span style={{ marginLeft: "0px" }}>
-                      <MarkdownWrapper>
-                        {"Você reagiu... " + message.body}
-                      </MarkdownWrapper>
-                    </span>
-                  </>
+                  <span className={classes.timestamp}>
+                    {message.isEdited ? "Editada " + format(parseISO(message.createdAt), "HH:mm") : format(parseISO(message.createdAt), "HH:mm")}
+                  </span>
+                </div>
+              </div>
+            </React.Fragment>
+          );
+        } else {
+          return (
+            <React.Fragment key={message.id}>
+              {renderDailyTimestamps(message, index)}
+              {renderTicketsSeparator(message, index)}
+              {renderMessageDivider(message, index)}
+              <div
+                className={message.isPrivate ? classes.messageRightPrivate : classes.messageRight}
+                title={message.queueId && message.queue?.name}
+                onDoubleClick={(e) => hanldeReplyMessage(e, message)}
+              >
+                {showSelectMessageCheckbox && (
+                  <SelectMessageCheckbox
+                    // showSelectMessageCheckbox={showSelectMessageCheckbox}
+                    message={message}
+                  // selectedMessagesList={selectedMessagesList}
+                  // setSelectedMessagesList={setSelectedMessagesList}
+                  />
                 )}
 
-                <span className={classes.timestamp}>
-                  {message.isEdited ? "Editada " + format(parseISO(message.createdAt), "HH:mm") : format(parseISO(message.createdAt), "HH:mm")}
-                  {renderMessageAck(message)}
-                </span>
+                <IconButton
+                  variant="contained"
+                  size="small"
+                  id="messageActionsButton"
+                  disabled={message.isDeleted}
+                  className={classes.messageActionsButton}
+                  onClick={(e) => handleOpenMessageOptionsMenu(e, message)}
+                >
+                  <ExpandMore />
+                </IconButton>
+                {message.isForwarded && (
+                  <div>
+                    <span className={classes.forwardMessage}
+                    ><Reply style={{ color: "grey", transform: 'scaleX(-1)' }} /> Encaminhada
+                    </span>
+                    <br />
+                  </div>
+                )}
+                {isYouTubeLink(message.body) && (
+                  <>
+                    <YouTubePreview videoUrl={message.body} />
+                  </>
+                )}
+                {!lgpdDeleteMessage && message.isDeleted && (
+                  <div>
+                    <span className={classes.deletedMessage}
+                    >🚫 Essa mensagem foi apagada &nbsp;
+                    </span>
+                  </div>
+                )}
+                {(message.mediaUrl || message.mediaType === "locationMessage" || message.mediaType === "contactMessage"
+                  //|| message.mediaType === "multi_vcard" 
+                ) && checkMessageMedia(message)}
+                <div
+                  className={clsx(classes.textContentItem, {
+                    [classes.textContentItemDeleted]: message.isDeleted,
+                  })}
+                >
+
+                  {/* {message.isDeleted && (`🚫`)} */}
+
+
+
+                  {message.quotedMsg && renderQuotedMessage(message)}
+
+                  {
+                    ((message.mediaType === "image" || message.mediaType === "video") && path.basename(message.mediaUrl) === message.body) ||
+                    (message.mediaType !== "audio" && message.mediaType != "reactionMessage" && message.mediaType != "locationMessage" && message.mediaType !== "contactMessage") && (
+                      <>
+                        {xmlRegex.test(message.body) && (
+                          <div>{formatXml(message.body)}</div>
+
+                        )}
+                        {!xmlRegex.test(message.body) && (<MarkdownWrapper>{message.body}</MarkdownWrapper>)}
+
+                      </>
+                    )}
+
+                  {message.quotedMsg && message.mediaType === "reactionMessage" && (
+                    <>
+                      <span style={{ marginLeft: "0px" }}>
+                        <MarkdownWrapper>
+                          {"Você reagiu... " + message.body}
+                        </MarkdownWrapper>
+                      </span>
+                    </>
+                  )}
+
+                  <span className={classes.timestamp}>
+                    {message.isEdited ? "Editada " + format(parseISO(message.createdAt), "HH:mm") : format(parseISO(message.createdAt), "HH:mm")}
+                    {renderMessageAck(message)}
+                  </span>
+                </div>
               </div>
-            </div>
-          </React.Fragment>
-        );
-      }
-    });
-    return viewMessagesList;
-  } else {
-    return <div>Diga olá para seu novo contato!</div>;
-  }
-};
+            </React.Fragment>
+          );
+        }
+      });
+      return viewMessagesList;
+    } else {
+      return <div>Diga olá para seu novo contato!</div>;
+    }
+  };
 
-return (
-  <div className={classes.messagesListWrapper} onDragEnter={handleDrag}>
-    {dragActive && <div className={classes.dragElement} onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}>Solte o arquivo aqui</div>}
+  return (
+    <div className={classes.messagesListWrapper} onDragEnter={handleDrag}>
+      {dragActive && <div className={classes.dragElement} onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}>Solte o arquivo aqui</div>}
 
-    <MessageOptionsMenu
-      message={selectedMessage}
-      anchorEl={anchorEl}
-      menuOpen={messageOptionsMenuOpen}
-      handleClose={handleCloseMessageOptionsMenu}
-      isGroup={isGroup}
-      whatsappId={whatsappId}
-      queueId={queueId}
-    />
-    <div
-      id="messagesList"
-      className={classes.messagesList}
-      onScroll={handleScroll}
-    >
-      {messagesList.length > 0 ?
-        renderMessages()
-        : []}
-    </div>
-
-    {(channel !== "whatsapp" && channel !== undefined) && (
+      <MessageOptionsMenu
+        message={selectedMessage}
+        anchorEl={anchorEl}
+        menuOpen={messageOptionsMenuOpen}
+        handleClose={handleCloseMessageOptionsMenu}
+        isGroup={isGroup}
+        whatsappId={whatsappId}
+        queueId={queueId}
+      />
       <div
-        style={{
-          width: "100%",
-          display: "flex",
-          padding: "10px",
-          alignItems: "center",
-          backgroundColor: "#E1F3FB",
-        }}
+        id="messagesList"
+        className={classes.messagesList}
+        onScroll={handleScroll}
       >
-        {channel === "facebook" ? (
-          <Facebook />
-        ) : (
-          <Instagram />
-        )}
+        {messagesList.length > 0 ?
+          renderMessages()
+          : []}
+      </div>
 
-        <span>
-          Você tem 24h para responder após receber uma mensagem, de acordo
-          com as políticas do Facebook.
-        </span>
-      </div>
-    )}
-    {loading && (
-      <div>
-        <CircularProgress className={classes.circleLoading} />
-      </div>
-    )}
-  </div>
-);
+      {(channel !== "whatsapp" && channel !== undefined) && (
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            padding: "10px",
+            alignItems: "center",
+            backgroundColor: "#E1F3FB",
+          }}
+        >
+          {channel === "facebook" ? (
+            <Facebook />
+          ) : (
+            <Instagram />
+          )}
+
+          <span>
+            Você tem 24h para responder após receber uma mensagem, de acordo
+            com as políticas do Facebook.
+          </span>
+        </div>
+      )}
+      {loading && (
+        <div>
+          <CircularProgress className={classes.circleLoading} />
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default MessagesList;

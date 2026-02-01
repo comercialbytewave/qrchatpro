@@ -16,7 +16,7 @@ services:
       - PORT=8089
       # Banco de dados (ajuste conforme seu EasyPanel)
       - DB_DIALECT=postgres
-      - DB_HOST=54.144.207.128
+      - DB_HOST=[ ip-servidor externo ]
       - DB_PORT=5432
       - DB_USER=postgres
       - DB_PASS=Wa@13851424
@@ -25,7 +25,7 @@ services:
       - JWT_SECRET=kZaOTd+YZpjRUyyuQUpigJaEMk4vcW4YOymKPZX0Ts8=
       - JWT_REFRESH_SECRET=dBSXqFg9TaNUEDXVp6fhMTRLBysP+j2DSqf7+raxD3A=
       # Redis (ajuste conforme seu EasyPanel)
-      - REDIS_URI=redis://default:13851424@54.144.207.128:6379
+      - REDIS_URI=redis://default:13851424@[ ip-servidor externo ]
       - REDIS_OPT_LIMITER_MAX=1
       - REDIS_OPT_LIMITER_DURATION=3000
       # Limites
@@ -38,9 +38,9 @@ services:
       - FACEBOOK_APP_SECRET=b9886bfcab47ca4d0bfe1e44a1b37a60
       # Email
       - MAIL_HOST=smtp.gmail.com
-      - MAIL_USER=comercialbytewave@gmail.com
-      - MAIL_PASS=Wa@13851424
-      - MAIL_FROM=comercialbytewave@gmail.com
+      - MAIL_USER=
+      - MAIL_PASS=
+      - MAIL_FROM=
       - MAIL_PORT=467
     volumes:
       - backend_public:/usr/src/app/public

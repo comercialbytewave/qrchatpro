@@ -7,20 +7,30 @@ import logger from "../utils/logger";
 export const index = async (req: Request, res: Response): Promise<Response> => {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "whaticket";
 
+  // Log completo da requisição para debug
+  logger.info(`[WEBHOOK] Full URL: ${req.originalUrl}`);
+  logger.info(`[WEBHOOK] Query params: ${JSON.stringify(req.query)}`);
+  logger.info(`[WEBHOOK] Headers: ${JSON.stringify(req.headers)}`);
+  logger.info(`[WEBHOOK] Method: ${req.method}`);
+
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  logger.info(`[WEBHOOK] Verification request - mode: ${mode}, token: ${token}`);
+  logger.info(`[WEBHOOK] Verification request - mode: ${mode}, token: ${token}, challenge: ${challenge}`);
+  logger.info(`[WEBHOOK] Expected VERIFY_TOKEN: ${VERIFY_TOKEN}`);
 
   if (mode && token) {
     if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      logger.info(`[WEBHOOK] Verification SUCCESS`);
+      logger.info(`[WEBHOOK] Verification SUCCESS - returning challenge`);
       return res.status(200).send(challenge);
+    } else {
+      logger.warn(`[WEBHOOK] Verification FAILED - token mismatch. Received: ${token}, Expected: ${VERIFY_TOKEN}`);
     }
+  } else {
+    logger.warn(`[WEBHOOK] Verification FAILED - missing mode or token`);
   }
 
-  logger.warn(`[WEBHOOK] Verification FAILED`);
   return res.status(403).json({
     message: "Forbidden"
   });

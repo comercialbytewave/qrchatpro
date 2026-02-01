@@ -36,11 +36,14 @@ export const sendFacebookMessageMedia = async ({
     const domain = `${process.env.BACKEND_URL}/public/company${ticket.companyId}/${media.filename}`
 
 
+    const senderId = ticket.channel === "instagram" ? ticket.whatsapp.facebookPageUserId : undefined;
+
     const sendMessage = await sendAttachmentFromUrl(
       ticket.contact.number,
       domain,
       type,
-      ticket.whatsapp.facebookUserToken
+      ticket.whatsapp.facebookUserToken,
+      senderId
     );
 
     await ticket.update({ lastMessage: media.filename });
@@ -63,16 +66,19 @@ export const sendFacebookMessageMediaExternal = async ({
 
     // const domain = `${process.env.BACKEND_URL}/public/${media.filename}`
 
+    const senderId = ticket.channel === "instagram" ? ticket.whatsapp.facebookPageUserId : undefined;
+
     const sendMessage = await sendAttachmentFromUrl(
       ticket.contact.number,
       url,
       type,
-      ticket.whatsapp.facebookUserToken
+      ticket.whatsapp.facebookUserToken,
+      senderId
     );
 
     const randomName = Math.random().toString(36).substring(7);
 
-    await ticket.update({ lastMessage: body ||  `${randomName}.jpg}`});
+    await ticket.update({ lastMessage: body || `${randomName}.jpg}` });
 
     // fs.unlinkSync(media.path);
 
@@ -92,16 +98,19 @@ export const sendFacebookMessageFileExternal = async ({
 
     // const domain = `${process.env.BACKEND_URL}/public/${media.filename}`
 
+    const senderId = ticket.channel === "instagram" ? ticket.whatsapp.facebookPageUserId : undefined;
+
     const sendMessage = await sendAttachmentFromUrl(
       ticket.contact.number,
       url,
       type,
-      ticket.whatsapp.facebookUserToken
+      ticket.whatsapp.facebookUserToken,
+      senderId
     );
 
     const randomName = Math.random().toString(36).substring(7);
 
-    await ticket.update({ lastMessage: body ||  `${randomName}.pdf}`});
+    await ticket.update({ lastMessage: body || `${randomName}.pdf}` });
 
     // fs.unlinkSync(media.path);
 
