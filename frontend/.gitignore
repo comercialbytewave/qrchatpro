@@ -4,6 +4,7 @@ dist
 yarn.lock
 yarn-error.log
 
+/build/
 /src/config/sentry.js
 
 # Ignore test-related files

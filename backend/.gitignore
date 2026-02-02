@@ -4,6 +4,8 @@ dist
 yarn.lock
 yarn-error.log
 /public/
+/build/
+/dist/
 
 /src/config/sentry.js
 
