@@ -15,4 +15,8 @@ ReactDOM.render(
 	}
 );
 
-serviceworker.register()
+// Registrar o service worker de limpeza que vai:
+// 1. Substituir qualquer SW antigo/corrompido
+// 2. Limpar todos os caches
+// 3. Se auto-desregistrar
+serviceworker.register();

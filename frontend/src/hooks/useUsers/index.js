@@ -1,38 +1,47 @@
-import { useState, useEffect } from "react";
-import toastError from "../../errors/toastError";
-
 import api from "../../services/api";
+import toastError from "../../errors/toastError";
+import openSocket from "socket.io-client";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { i18n } from "../../translate/i18n";
 
-const useUsers = () => {
-    const [loading, setLoading] = useState(true);
-    const [hasMore, setHasMore] = useState(false);
-    const [users, setUsers] = useState([]);
-    const [count, setCount] = useState(0);
+const useUser = () => {
+  const [users, setUsers] = useState([]);
+  const [update, setUpdate] = useState(true);
 
-    useEffect(() => {
-        setLoading(true);
-        const delayDebounceFn = setTimeout(() => {
-            const fetchUsers = async () => {
-                try {
-                    const { data } = await api.get("/users", {
-                        params: {},
-                    });
-                    setUsers(data.users);
-                    setHasMore(data.hasMore);
-                    setCount(data.count);
-                    setLoading(false);
-                } catch (err) {
-                    setLoading(false);
-                    toastError(err);
-                }
-            };
+  useEffect(() => {
+    (async () => {
+      if (update) {
+        try {
+          const { data } = await api.get("/users");
+          setUsers(data.users);
+          setUpdate(false);
+        } catch (err) {
+          if (err.response?.status !== 500) {
+            toastError(err);
+          } else {
+            toast.error(`${i18n.t("frontEndErrors.getUsers")}`);
+          }
+        }
+      }
+    })();
+  });
 
-            fetchUsers();
-        }, 500);
-        return () => clearTimeout(delayDebounceFn);
-    }, []);
+  useEffect(() => {
+    const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_BACKEND_URL;
+    const socket = openSocket(socketUrl);
 
-    return { users, loading, hasMore, count };
+    socket.on("users", (data) => {
+      setUpdate(true);
+    });
+
+    return () => {
+      console.log("OFF USERS SOCKET")
+      socket.off("users");
+    };
+  }, [users]);
+
+  return { users };
 };
 
-export default useUsers;
+export default useUser;

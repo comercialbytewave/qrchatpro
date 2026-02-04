@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { BrowserRouter, Switch } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -7,6 +8,7 @@ import Dashboard from "../pages/Dashboard";
 import TicketResponsiveContainer from "../pages/TicketResponsiveContainer";
 import Signup from "../pages/Signup";
 import Login from "../pages/Login";
+import ForgotPassword from "../pages/ForgotPassword";
 import Connections from "../pages/Connections";
 import SettingsCustom from "../pages/SettingsCustom";
 import Financeiro from "../pages/Financeiro";
@@ -74,6 +76,7 @@ const Routes = () => {
           <Switch>
             <Route exact path="/login" component={Login} />
             <Route exact path="/signup" component={Signup} />
+            <Route exact path="/forgot-password" component={ForgotPassword} />
             <WhatsAppsProvider>
               <LoggedInLayout>
                 <Route exact path="/financeiro" component={Financeiro} isPrivate />
@@ -104,8 +107,8 @@ const Routes = () => {
                 <Route exact path="/customers" component={Customers} isPrivate />
                 <Route exact path="/payments" component={Payments} isPrivate />
                 <Route exact path="/statusBudGets" component={StatusBudgets} isPrivate />
-                
-                
+
+
                 <Route
                   exact
                   path="/phrase-lists"
