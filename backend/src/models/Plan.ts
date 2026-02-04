@@ -33,28 +33,28 @@ class Plan extends Model<Plan> {
   queues: number;
 
   @Column
-  amount: string;   
+  amount: string;
 
   @Column
-  useWhatsapp: boolean;   
+  useWhatsapp: boolean;
 
   @Column
-  useFacebook: boolean;   
+  useFacebook: boolean;
 
   @Column
-  useInstagram: boolean;   
-  
-  @Column
-  useCampaigns: boolean;   
+  useInstagram: boolean;
 
   @Column
-  useSchedules: boolean;   
+  useCampaigns: boolean;
 
   @Column
-  useInternalChat: boolean;   
-  
+  useSchedules: boolean;
+
   @Column
-  useExternalApi: boolean;   
+  useInternalChat: boolean;
+
+  @Column
+  useExternalApi: boolean;
 
   @CreatedAt
   createdAt: Date;
@@ -79,6 +79,9 @@ class Plan extends Model<Plan> {
 
   @Column
   useIntegrations: boolean;
+
+  @Column
+  useSales: boolean;
 
   @Default(true)
   @Column

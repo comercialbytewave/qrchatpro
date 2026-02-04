@@ -38,6 +38,7 @@ const FindOrCreateTicketService = async (
   // let isCreated = false;
 
   let openAsLGPD = false
+  
   if (settings.enableLGPD) { //adicionar lgpdMessage
 
     openAsLGPD = !isCampaign &&

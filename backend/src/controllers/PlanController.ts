@@ -46,6 +46,7 @@ type StorePlanData = {
   useKanban?: boolean;
   useOpenAi?: boolean;
   useIntegrations?: boolean;
+  useSales?: boolean;
   isPublic?: boolean;
 };
 
@@ -66,6 +67,7 @@ type UpdatePlanData = {
   useKanban?: boolean;
   useOpenAi?: boolean;
   useIntegrations?: boolean;
+  useSales?: boolean;
   isPublic?: boolean;
 };
 
@@ -103,7 +105,7 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
 };
 
 export const list = async (req: Request, res: Response): Promise<Response> => {
-  const {listPublic} = req.query as IndexQuery;
+  const { listPublic } = req.query as IndexQuery;
 
   const plans: Plan[] = await FindAllPlanService(listPublic);
 

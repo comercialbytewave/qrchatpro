@@ -159,18 +159,16 @@ function ListItemLink(props) {
                   className={classes.badge}
                 >
                   <Avatar
-                    className={`${classes.iconHoverActive} ${
-                      isActive ? "active" : ""
-                    }`}
+                    className={`${classes.iconHoverActive} ${isActive ? "active" : ""
+                      }`}
                   >
                     {icon}
                   </Avatar>
                 </Badge>
               ) : (
                 <Avatar
-                  className={`${classes.iconHoverActive} ${
-                    isActive ? "active" : ""
-                  }`}
+                  className={`${classes.iconHoverActive} ${isActive ? "active" : ""
+                    }`}
                 >
                   {icon}
                 </Avatar>
@@ -275,6 +273,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
   const [showSchedules, setShowSchedules] = useState(false);
   const [showInternalChat, setShowInternalChat] = useState(false);
   const [showExternalApi, setShowExternalApi] = useState(false);
+  const [showSales, setShowSales] = useState(false);
 
   const [invisible, setInvisible] = useState(true);
   const [pageNumber, setPageNumber] = useState(1);
@@ -370,6 +369,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
       setShowSchedules(planConfigs.plan.useSchedules);
       setShowInternalChat(planConfigs.plan.useInternalChat);
       setShowExternalApi(planConfigs.plan.useExternalApi);
+      setShowSales(planConfigs.plan.useSales);
     }
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -466,7 +466,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
       <Can
         role={
           (user.profile === "user" && user.showDashboard === "enabled") ||
-          user.allowRealTime === "enabled"
+            user.allowRealTime === "enabled"
             ? "admin"
             : user.profile
         }
@@ -486,9 +486,8 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               >
                 <ListItemIcon>
                   <Avatar
-                    className={`${classes.iconHoverActive} ${
-                      isManagementActive || managementHover ? "active" : ""
-                    }`}
+                    className={`${classes.iconHoverActive} ${isManagementActive || managementHover ? "active" : ""
+                      }`}
                   >
                     <Dashboard />
                   </Avatar>
@@ -651,6 +650,23 @@ const MainListItems = ({ collapsed, drawerClose }) => {
             <ListSubheader inset>
               {i18n.t("mainDrawer.listItems.administration")}
             </ListSubheader>
+            <Can
+              role={
+                user.profile === "user" && user.allowConnections === "enabled"
+                  ? "admin"
+                  : user.profile
+              }
+              perform={"drawer-admin-items:view"}
+              yes={() => (
+                <ListItemLink
+                  to="/connections"
+                  primary={i18n.t("mainDrawer.listItems.connections")}
+                  icon={<SyncAltIcon />}
+                  showBadge={connectionWarning}
+                  tooltip={collapsed}
+                />
+              )}
+            />
             {showCampaigns && (
               <Can
                 role={user.profile}
@@ -674,11 +690,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                       >
                         <ListItemIcon>
                           <Avatar
-                            className={`${classes.iconHoverActive} ${
-                              isCampaignRouteActive || campaignHover
-                                ? "active"
-                                : ""
-                            }`}
+                            className={`${classes.iconHoverActive} ${isCampaignRouteActive || campaignHover
+                              ? "active"
+                              : ""
+                              }`}
                           >
                             <EventAvailableIcon />
                           </Avatar>
@@ -735,7 +750,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
             )}
 
             {/* VAREJO */}
-            <Can
+            {showSales && (<Can
               role={user.profile}
               perform="dashboard:view"
               yes={() => (
@@ -755,9 +770,8 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                     >
                       <ListItemIcon>
                         <Avatar
-                          className={`${classes.iconHoverActive} ${
-                            isRatailRouteActive || retailHover ? "active" : ""
-                          }`}
+                          className={`${classes.iconHoverActive} ${isRatailRouteActive || retailHover ? "active" : ""
+                            }`}
                         >
                           <ShoppingBasket />
                         </Avatar>
@@ -825,11 +839,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                 >
                                   <ListItemIcon>
                                     <Avatar
-                                      className={`${classes.iconHoverActive} ${
-                                        isCustomerRouteActive || customerHover
-                                          ? "active"
-                                          : ""
-                                      }`}
+                                      className={`${classes.iconHoverActive} ${isCustomerRouteActive || customerHover
+                                        ? "active"
+                                        : ""
+                                        }`}
                                     >
                                       <PortraitOutlined />
                                     </Avatar>
@@ -911,11 +924,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                 >
                                   <ListItemIcon>
                                     <Avatar
-                                      className={`${classes.iconHoverActive} ${
-                                        isProductRouteActive || productHover
-                                          ? "active"
-                                          : ""
-                                      }`}
+                                      className={`${classes.iconHoverActive} ${isProductRouteActive || productHover
+                                        ? "active"
+                                        : ""
+                                        }`}
                                     >
                                       <Loyalty />
                                     </Avatar>
@@ -997,11 +1009,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                 >
                                   <ListItemIcon>
                                     <Avatar
-                                      className={`${classes.iconHoverActive} ${
-                                        isBudgetRouteActive || budgetHover
-                                          ? "active"
-                                          : ""
-                                      }`}
+                                      className={`${classes.iconHoverActive} ${isBudgetRouteActive || budgetHover
+                                        ? "active"
+                                        : ""
+                                        }`}
                                     >
                                       {openBudgetSubmenu ? (
                                         <FolderOutlined />
@@ -1046,7 +1057,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                                     icon={<LocalAtmIcon />}
                                     tooltip={collapsed}
                                   />
-                                   <ListItemLink
+                                  <ListItemLink
                                     to="/statusBudGets"
                                     primary={i18n.t(
                                       "mainDrawer.listItems.statusBudGets"
@@ -1064,7 +1075,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                   </Collapse>
                 </>
               )}
-            />
+            />)}
 
             {/* INTEGRAÇÕES */}
             <Can
@@ -1089,11 +1100,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                     >
                       <ListItemIcon>
                         <Avatar
-                          className={`${classes.iconHoverActive} ${
-                            isIntegrationRouteActive || integrationHover
-                              ? "active"
-                              : ""
-                          }`}
+                          className={`${classes.iconHoverActive} ${isIntegrationRouteActive || integrationHover
+                            ? "active"
+                            : ""
+                            }`}
                         >
                           <Memory />
                         </Avatar>
@@ -1157,24 +1167,6 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                         />
                       )}
 
-                      {showExternalApi && (
-                        <>
-                          <Can
-                            role={user.profile}
-                            perform="dashboard:view"
-                            yes={() => (
-                              <ListItemLink
-                                to="/messages-api"
-                                primary={i18n.t(
-                                  "mainDrawer.listItems.messagesAPI"
-                                )}
-                                icon={<CodeRoundedIcon />}
-                                tooltip={collapsed}
-                              />
-                            )}
-                          />
-                        </>
-                      )}
                       {/* FLOWBUILDER */}
                       <Can
                         role={user.profile}
@@ -1200,11 +1192,10 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                               >
                                 <ListItemIcon>
                                   <Avatar
-                                    className={`${classes.iconHoverActive} ${
-                                      isFlowbuilderRouteActive || flowHover
-                                        ? "active"
-                                        : ""
-                                    }`}
+                                    className={`${classes.iconHoverActive} ${isFlowbuilderRouteActive || flowHover
+                                      ? "active"
+                                      : ""
+                                      }`}
                                   >
                                     <Webhook />
                                   </Avatar>
@@ -1261,6 +1252,22 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               )}
             />
 
+            {showExternalApi && (
+              <>
+                <Can
+                  role={user.profile}
+                  perform="dashboard:view"
+                  yes={() => (
+                    <ListItemLink
+                      to="/messages-api"
+                      primary={i18n.t("mainDrawer.listItems.messagesAPI")}
+                      icon={<CodeRoundedIcon />}
+                      tooltip={collapsed}
+                    />
+                  )}
+                />
+              </>
+            )}
             {user.super && (
               <ListItemLink
                 to="/announcements"
@@ -1295,23 +1302,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               )}
             />
 
-            <Can
-              role={
-                user.profile === "user" && user.allowConnections === "enabled"
-                  ? "admin"
-                  : user.profile
-              }
-              perform={"drawer-admin-items:view"}
-              yes={() => (
-                <ListItemLink
-                  to="/connections"
-                  primary={i18n.t("mainDrawer.listItems.connections")}
-                  icon={<SyncAltIcon />}
-                  showBadge={connectionWarning}
-                  tooltip={collapsed}
-                />
-              )}
-            />
+
             {user.super && (
               <ListItemLink
                 to="/allConnections"

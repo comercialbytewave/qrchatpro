@@ -60,6 +60,7 @@ import usePlans from "../../hooks/usePlans";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import ForbiddenPage from "../../components/ForbiddenPage";
 import { Can } from "../../components/Can";
+import whatsappCloudIcon from "../../assets/whatsapp-cloud.png";
 
 const useStyles = makeStyles((theme) => ({
   mainPaper: {
@@ -147,7 +148,9 @@ const IconChannel = (channel, phoneNumberId) => {
     case "whatsapp-cloud":
       // Se tiver phoneNumberId, é Cloud API
       if (phoneNumberId) {
-        return <WhatsApp style={{ color: "#128C7E" }} title="WhatsApp Cloud API" />;
+        return (
+          <img src={whatsappCloudIcon} alt="WhatsApp Cloud" style={{ width: 24, height: 24 }} />
+        );
       }
       return <WhatsApp style={{ color: "#25d366" }} />;
     default:
@@ -251,7 +254,7 @@ const Connections = () => {
       // Verifica se é WhatsApp Cloud ou WhatsApp normal
       const whatsApp = whatsApps?.find(w => w.id === whatsAppId);
       const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
-      
+
       if (isCloud) {
         await api.post(`/whatsapp-cloud-session/${whatsAppId}`);
       } else {
@@ -267,7 +270,7 @@ const Connections = () => {
       // Verifica se é WhatsApp Cloud ou WhatsApp normal
       const whatsApp = whatsApps?.find(w => w.id === whatsAppId);
       const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
-      
+
       if (isCloud) {
         await api.put(`/whatsapp-cloud-session/${whatsAppId}`);
       } else {
@@ -358,7 +361,7 @@ const Connections = () => {
         // Verifica se é WhatsApp Cloud
         const whatsApp = whatsApps?.find(w => w.id === confirmModalInfo.whatsAppId);
         const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
-        
+
         if (isCloud) {
           await api.delete(`/whatsapp-cloud-session/${confirmModalInfo.whatsAppId}`);
         } else {
@@ -374,7 +377,7 @@ const Connections = () => {
         // Verifica se é WhatsApp Cloud
         const whatsApp = whatsApps?.find(w => w.id === confirmModalInfo.whatsAppId);
         const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
-        
+
         if (isCloud) {
           await api.delete(`/whatsapp-cloud/${confirmModalInfo.whatsAppId}`);
         } else {
@@ -453,7 +456,7 @@ const Connections = () => {
   const renderActionButtons = (whatsApp) => {
     // Verifica se é WhatsApp Cloud
     const isCloud = whatsApp?.phoneNumberId && whatsApp?.token;
-    
+
     return (
       <>
         {whatsApp.status === "qrcode" && !isCloud && (
@@ -672,13 +675,7 @@ const Connections = () => {
                                 popupState.close();
                               }}
                             >
-                              <WhatsApp
-                                fontSize="small"
-                                style={{
-                                  marginRight: "10px",
-                                  color: "#25D366",
-                                }}
-                              />
+                              <img src={whatsappCloudIcon} alt="WhatsApp Cloud" style={{ width: 24, height: 24, marginRight: 10 }} />
                               WhatsApp Cloud API
                             </MenuItem>
                             {/* FACEBOOK */}

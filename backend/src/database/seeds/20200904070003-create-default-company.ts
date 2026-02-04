@@ -20,6 +20,7 @@ module.exports = {
           useInstagram: true,
           useCampaigns: true,
           useSchedules: true,
+          useSales: true,
           useInternalChat: true,
           useExternalApi: true,
           createdAt: new Date(),

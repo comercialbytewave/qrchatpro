@@ -31,6 +31,7 @@ const APIShowEmailUserService = async (email: string): Promise<User> => {
                 "useExternalApi",
                 "useIntegrations",
                 "useOpenAi",
+                "useSales",
                 "useKanban"
               ]
             },

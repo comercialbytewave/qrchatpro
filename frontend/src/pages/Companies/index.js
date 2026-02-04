@@ -97,7 +97,7 @@ const Companies = () => {
     const { dateToClient, datetimeToClient } = useDate();
 
     // const { getPlanCompany } = usePlans();
-  //   const socketManager = useContext(SocketContext);
+    //   const socketManager = useContext(SocketContext);
     const { user, socket } = useContext(AuthContext);
 
 
@@ -139,15 +139,15 @@ const Companies = () => {
         return () => clearTimeout(delayDebounceFn);
     }, [searchParam, pageNumber]);
 
-//     useEffect(() => {
-//         const companyId = user.companyId;
-//   //    const socket = socketManager.GetSocket();
-//         // const socket = socketConnection();
+    //     useEffect(() => {
+    //         const companyId = user.companyId;
+    //   //    const socket = socketManager.GetSocket();
+    //         // const socket = socketConnection();
 
-//         return () => {
-//             socket.disconnect();
-//         };
-//     }, []);
+    //         return () => {
+    //             socket.disconnect();
+    //         };
+    //     }, []);
 
     const handleOpenCompanyModal = () => {
         setSelectedCompany(null);
@@ -226,6 +226,10 @@ const Companies = () => {
 
     const renderExternalApi = (row) => {
         return row.useExternalApi === false ? "Não" : "Sim";
+    };
+
+    const renderSales = (row) => {
+        return row.useSales === false ? "Não" : "Sim";
     };
 
     const rowStyle = (record) => {
@@ -320,6 +324,7 @@ const Companies = () => {
                             {/* <TableCell align="center">{i18n.t("compaies.table.useExternalApi")}</TableCell> */}
                             {/* <TableCell align="center">{i18n.t("compaies.table.useInternalChat")}</TableCell> */}
                             {/* <TableCell align="center">{i18n.t("compaies.table.useSchedules")}</TableCell> */}
+                            {/* <TableCell align="center">Vendas</TableCell> */}
                             {/* <TableCell align="center">{i18n.t("compaies.table.actions")}</TableCell> */}
                         </TableRow>
                     </TableHead>
@@ -349,6 +354,7 @@ const Companies = () => {
                                     {/* <TableCell align="center">{renderExternalApi(company.plan.useExternalApi)}</TableCell> */}
                                     {/* <TableCell align="center">{renderInternalChat(company.plan.useInternalChat)}</TableCell> */}
                                     {/* <TableCell align="center">{renderSchedules(company.plan.useSchedules)}</TableCell> */}
+                                    {/* <TableCell align="center">{renderSales(company.plan.useSales)}</TableCell> */}
                                     {/* <TableCell align="center">
                                         <IconButton
                                             size="small"

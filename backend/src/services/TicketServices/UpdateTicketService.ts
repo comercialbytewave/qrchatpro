@@ -44,7 +44,7 @@ interface TicketData {
 interface Request {
   ticketData: TicketData;
   ticketId: string | number;
-  companyId: string | number;
+  companyId: number;
 }
 
 interface Response {

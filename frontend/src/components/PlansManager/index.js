@@ -83,6 +83,7 @@ export function PlanManagerForm(props) {
         useKanban: true,
         useOpenAi: true,
         useIntegrations: true,
+        useSales: true,
         isPublic: true
     });
 
@@ -367,6 +368,26 @@ export function PlanManagerForm(props) {
                                 </Field>
                             </FormControl>
                         </Grid>
+
+
+                        {/* SALES */}
+                        <Grid xs={12} sm={8} md={2} item>
+                            <FormControl margin="dense" variant="outlined" fullWidth>
+                                <InputLabel htmlFor="useSales-selection">Vendas</InputLabel>
+                                <Field
+                                    as={Select}
+                                    id="useSales-selection"
+                                    label="Vendas"
+                                    labelId="useSales-selection-label"
+                                    name="useSales"
+                                    margin="dense"
+                                >
+                                    <MenuItem value={true}>{i18n.t("plans.form.enabled")}</MenuItem>
+                                    <MenuItem value={false}>{i18n.t("plans.form.disabled")}</MenuItem>
+                                </Field>
+                            </FormControl>
+                        </Grid>
+
                     </Grid>
                     <Grid spacing={2} justifyContent="flex-end" container>
 
@@ -438,6 +459,10 @@ export function PlansManagerGrid(props) {
         return row.useIntegrations === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
     };
 
+    const renderSales = (row) => {
+        return row.useSales === false ? `${i18n.t("plans.form.no")}` : `${i18n.t("plans.form.yes")}`;
+    };
+
     return (
         <Paper className={classes.tableContainer}>
             <Table
@@ -465,6 +490,7 @@ export function PlansManagerGrid(props) {
                         <TableCell align="center">Kanban</TableCell>
                         <TableCell align="center">OpenIA</TableCell>
                         <TableCell align="center">Integrações</TableCell>
+                        <TableCell align="center">Vendas</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -477,7 +503,7 @@ export function PlansManagerGrid(props) {
                             </TableCell>
                             <TableCell align="left">{row.name || '-'}</TableCell>
                             <TableCell align="center">{row.users || '-'}</TableCell>
-                            <TableCell align="center">{row.isPublic ? "Sim": "Não" || '-'}</TableCell>
+                            <TableCell align="center">{row.isPublic ? "Sim" : "Não" || '-'}</TableCell>
                             <TableCell align="center">{row.connections || '-'}</TableCell>
                             <TableCell align="center">{row.queues || '-'}</TableCell>
                             <TableCell align="center">{i18n.t("plans.form.money")} {row.amount ? row.amount.toLocaleString('pt-br', { minimumFractionDigits: 2 }) : '00.00'}</TableCell>
@@ -491,6 +517,7 @@ export function PlansManagerGrid(props) {
                             <TableCell align="center">{renderKanban(row)}</TableCell>
                             <TableCell align="center">{renderOpenAi(row)}</TableCell>
                             <TableCell align="center">{renderIntegrations(row)}</TableCell>
+                            <TableCell align="center">{renderSales(row)}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -597,6 +624,7 @@ export default function PlansManager() {
             useKanban: true,
             useOpenAi: true,
             useIntegrations: true,
+            useSales: true,
             isPublic: true
         })
     }
@@ -613,6 +641,7 @@ export default function PlansManager() {
         let useKanban = data.useKanban === false ? false : true
         let useOpenAi = data.useOpenAi === false ? false : true
         let useIntegrations = data.useIntegrations === false ? false : true
+        let useSales = data.useSales === false ? false : true
 
         setRecord({
             id: data.id,
@@ -631,6 +660,7 @@ export default function PlansManager() {
             useKanban,
             useOpenAi,
             useIntegrations,
+            useSales,
             isPublic: data.isPublic
         })
     }

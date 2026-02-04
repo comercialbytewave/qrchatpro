@@ -395,7 +395,8 @@ const TicketListItemCustom = ({ setTabOpen, ticket }) => {
             toastError(err);
         }
 
-        const msg = `${setting.greetingAcceptedMessage}`; //`{{ms}} *{{name}}*, ${i18n.t("mainDrawer.appBar.user.myName")} *${user?.name}* ${i18n.t("mainDrawer.appBar.user.continuity")}.`;
+        const msg = setting.greetingAcceptedMessage ? `${setting.greetingAcceptedMessage}`:
+        `{{ms}} *{{name}}*, ${i18n.t("mainDrawer.appBar.user.myName")} *${user?.name}* ${i18n.t("mainDrawer.appBar.user.continuity")}.`;
         const message = {
             read: 1,
             fromMe: true,

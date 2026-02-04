@@ -2172,6 +2172,11 @@ export const handleRating = async (
     }
   }
 
+  await ticketTraking.update({
+    finishedAt: moment().toDate(),
+    rated: rate ? true : false
+  });
+
   await ticket.update({
     isBot: false,
     status: "closed",
@@ -3252,13 +3257,25 @@ const handleMessage = async (
       whatsappId: whatsapp?.id
     });
 
-    let useLGPD = false;
+    let useLGPD = !!enableLGPD;
 
     try {
       if (!msg.key.fromMe) {
+        if (verifyRating(ticketTraking)) {
+          let rate: number | null = null;
+
+          const messageBody = getBodyMessage(msg);
+
+          if (messageBody) {
+            rate = +messageBody || null;
+          }
+
+          const rated =
+            !Number.isNaN(rate) && Number.isInteger(rate) && !isNull(rate);
+          if (rated) handleRating(rate, ticket, ticketTraking);
+          return;
+        }
         //MENSAGEM DE FÉRIAS COLETIVAS
-
-
         if (!isNil(whatsapp.collectiveVacationMessage && !isGroup)) {
           const currentDate = moment();
 
@@ -3427,8 +3444,8 @@ const handleMessage = async (
       !ticket.isGroup &&
       !ticket.queue &&
       !ticket.user &&
-      ticket.isBot &&
-      !isNil(whatsapp.integrationId) &&
+      //ticket.isBot &&
+      whatsapp.integrationId &&
       !ticket.useIntegration
     ) {
 

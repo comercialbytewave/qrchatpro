@@ -250,8 +250,79 @@ export const ActionsWebhookService = async (
       }
 
       if (nodeSelected.type === "ticket") {
+        if (!ticket && idTicket) {
+          ticket = await Ticket.findOne({
+            where: { id: idTicket, whatsappId, companyId }
+          });
+        }
+
+        if (!nodeSelected.data || !nodeSelected.data.data || !nodeSelected.data.data.id) {
+          logger.warn(`Flow builder: Ticket node missing data. Node ID: ${nodeSelected.id}. Closing ticket as fallback.`);
+
+          if (ticket) {
+            await ticket.update({
+              status: 'closed',
+              userId: ticket.userId,
+              companyId: companyId,
+              flowWebhook: false,
+              lastFlowId: null,
+              hashFlowId: null,
+              flowStopped: null
+            });
+
+            const io = getIO();
+            io.of(String(companyId))
+              .emit(`company-${companyId}-ticket`, {
+                action: "delete",
+                ticketId: ticket.id
+              });
+
+            io.of(String(companyId))
+              .emit(`company-${companyId}-ticket`, {
+                action: "update",
+                ticket
+              });
+          }
+          break;
+        }
+
         const queue = await ShowQueueService(nodeSelected.data.data.id, companyId)
 
+        if (!queue) {
+          logger.error(`Flow builder: Queue not found. Queue ID: ${nodeSelected.data.data.id}`);
+          break;
+        }
+
+        if (queue.closeTicket) {
+          logger.info(`Flow builder: Queue ${queue.id} has closeTicket enabled. Closing ticket ${ticket?.id}.`);
+
+          if (ticket) {
+            await ticket.update({
+              status: 'closed',
+              queueId: queue.id,
+              userId: ticket.userId,
+              companyId: companyId,
+              flowWebhook: false,
+              lastFlowId: null,
+              hashFlowId: null,
+              flowStopped: null
+            });
+
+            const io = getIO();
+            io.of(String(companyId))
+              .emit(`company-${companyId}-ticket`, {
+                action: "delete",
+                ticketId: ticket.id
+              });
+
+            io.of(String(companyId))
+              .emit(`company-${companyId}-ticket`, {
+                action: "update",
+                ticket
+              });
+          }
+          break;
+        }
 
         await ticket.update({
           status: 'pending',
@@ -271,7 +342,7 @@ export const ActionsWebhookService = async (
           userId: ticket.userId
         })
 
-       
+
 
         await UpdateTicketService({
           ticketData: {
@@ -297,7 +368,7 @@ export const ActionsWebhookService = async (
 
         const { queues, greetingMessage, maxUseBotQueues, timeUseBotQueues } = await ShowWhatsAppService(whatsappId, companyId);
 
-        if(greetingMessage.length > 1 ){
+        if (greetingMessage.length > 1) {
           const body = formatBody(`${greetingMessage}`, ticket);
 
           const ticketDetails = await ShowTicketService(ticket.id, companyId);
@@ -321,7 +392,7 @@ export const ActionsWebhookService = async (
 
       if (nodeSelected.type === "singleBlock") {
         for (var iLoc = 0; iLoc < nodeSelected.data.seq.length; iLoc++) {
-        
+
           const elementNowSelected = nodeSelected.data.seq[iLoc];
           if (elementNowSelected.includes("message")) {
             // await SendMessageFlow(whatsapp, {
@@ -370,25 +441,26 @@ export const ActionsWebhookService = async (
             );
           }
           if (elementNowSelected.includes("img")) {
+            const mediaDirectory =
+              process.env.BACKEND_URL === "http://localhost:8090" || process.env.BACKEND_URL + ':' + process.env.PORT === "http://localhost"
+                ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
+                  item => item.number === elementNowSelected
+                )[0].value
+                }`
+                : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
+                  item => item.number === elementNowSelected
+                )[0].value
+                }`;
             await SendMessage(whatsapp, {
               number: numberClient,
               body: "",
-              mediaPath:
-                process.env.BACKEND_URL === "http://localhost:8090"
-                  ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                    item => item.number === elementNowSelected
-                  )[0].value
-                  }`
-                  : `${__dirname.split("dist")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
-                    item => item.number === elementNowSelected
-                  )[0].value
-                  }`
+              mediaPath: mediaDirectory
             });
             await intervalWhats("1");
           }
           if (elementNowSelected.includes("audio")) {
             const mediaDirectory =
-              process.env.BACKEND_URL === "http://localhost:8090"
+              process.env.BACKEND_URL === "http://localhost:8090" || process.env.BACKEND_URL + ':' + process.env.PORT === "http://localhost"
                 ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
                   item => item.number === elementNowSelected
                 )[0].value
@@ -412,7 +484,7 @@ export const ActionsWebhookService = async (
           }
           if (elementNowSelected.includes("video")) {
             const mediaDirectory =
-              process.env.BACKEND_URL === "http://localhost:8090"
+              process.env.BACKEND_URL === "http://localhost:8090" || process.env.BACKEND_URL + ':' + process.env.PORT === "http://localhost"
                 ? `${__dirname.split("src")[0].split("\\").join("/")}public/${nodeSelected.data.elements.filter(
                   item => item.number === elementNowSelected
                 )[0].value
