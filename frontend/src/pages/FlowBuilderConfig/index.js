@@ -65,7 +65,8 @@ import {
   Message,
   MicNone,
   RocketLaunch,
-  Videocam
+  Videocam,
+  QuestionAnswer
 } from "@mui/icons-material";
 import RemoveEdge from "./nodes/removeEdge";
 import FlowBuilderAddImgModal from "../../components/FlowBuilderAddImgModal";
@@ -79,6 +80,8 @@ import FlowBuilderSingleBlockModal from "../../components/FlowBuilderSingleBlock
 import singleBlockNode from "./nodes/singleBlockNode";
 import { colorPrimary } from "../../styles/styles";
 import ticketNode from "./nodes/ticketNode";
+import typebotNode from "./nodes/typebotNode";
+import FlowBuilderAddTypebotModal from "../../components/FlowBuilderAddTypebotModal";
 import { ConfirmationNumber } from "@material-ui/icons";
 
 const useStyles = makeStyles(theme => ({
@@ -118,7 +121,9 @@ const nodeTypes = {
   randomizer: randomizerNode,
   video: videoNode,
   singleBlock: singleBlockNode,
-  ticket: ticketNode
+  singleBlock: singleBlockNode,
+  ticket: ticketNode,
+  typebot: typebotNode,
 };
 
 const edgeTypes = {
@@ -158,7 +163,9 @@ export const FlowBuilderConfig = () => {
   const [modalAddRandomizer, setModalAddRandomizer] = useState(null);
   const [modalAddVideo, setModalAddVideo] = useState(null);
   const [modalAddSingleBlock, setModalAddSingleBlock] = useState(null);
-  const [modalAddTicket, setModalAddTicket] = useState(null)
+
+  const [modalAddTicket, setModalAddTicket] = useState(null);
+  const [modalAddTypebot, setModalAddTypebot] = useState(null);
 
   const connectionLineStyle = { stroke: "#2b2b2b", strokeWidth: "6px" };
 
@@ -318,6 +325,20 @@ export const FlowBuilderConfig = () => {
       });
     }
 
+    if (type === "typebot") {
+      return setNodes(old => {
+        return [
+          ...old,
+          {
+            id: geraStringAleatoria(30),
+            position: { x: posX, y: posY },
+            data: { ...data },
+            type: "typebot"
+          }
+        ];
+      });
+    }
+
 
   };
 
@@ -358,8 +379,12 @@ export const FlowBuilderConfig = () => {
   };
 
   const ticketAdd = data => {
-    addNode("ticket", data)
-  }
+    addNode("ticket", data);
+  };
+
+  const typebotAdd = data => {
+    addNode("typebot", data);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -479,6 +504,9 @@ export const FlowBuilderConfig = () => {
     if (node.type === "ticket") {
       setModalAddTicket("edit")
     }
+    if (node.type === "typebot") {
+      setModalAddTypebot("edit");
+    }
   };
 
   const clickNode = (event, node) => {
@@ -521,6 +549,7 @@ export const FlowBuilderConfig = () => {
     setModalAddText(null);
     setModalAddInterval(null);
     setModalAddMenu(null);
+    setModalAddTypebot(null);
   };
 
   const actions = [
@@ -589,6 +618,17 @@ export const FlowBuilderConfig = () => {
       ),
       name: "Ticket",
       type: "ticket"
+    },
+    {
+      icon: (
+        <QuestionAnswer
+          sx={{
+            color: "#683AC8"
+          }}
+        />
+      ),
+      name: "Pergunta",
+      type: "typebot"
     }
   ];
 
@@ -611,6 +651,10 @@ export const FlowBuilderConfig = () => {
         break;
       case "ticket":
         setModalAddTicket("create")
+        break;
+      case "typebot":
+        setModalAddTypebot("create");
+        break;
       default:
     }
   };
@@ -686,6 +730,13 @@ export const FlowBuilderConfig = () => {
         data={dataNode}
         onUpdate={updateNode}
         close={setModalAddTicket}
+      />
+      <FlowBuilderAddTypebotModal
+        open={modalAddTypebot}
+        onSave={typebotAdd}
+        data={dataNode}
+        onUpdate={updateNode}
+        close={setModalAddTypebot}
       />
       <MainHeader>
         <Title>Desenhe seu fluxo</Title>

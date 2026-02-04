@@ -162,6 +162,7 @@ export const ActionsWebhookService = async (
 
 
     for (var i = 0; i < lengthLoop; i++) {
+      console.log(`DEBUG ACTION: Loop ${i}, pressKey: ${pressKey}, next: ${next}, ticket.lastFlowId: ${ticket?.lastFlowId}`);
       let nodeSelected: any;
       let ticketInit: Ticket;
       if (idTicket) {
@@ -194,22 +195,37 @@ export const ActionsWebhookService = async (
           break;
         }
 
-        if (execFn === "") {
-          console.log("UPDATE5...");
-          nodeSelected = {
-            type: "menu"
-          };
+        let currentNode;
+        if (idTicket) {
+          const ticketRefresh = await Ticket.findOne({ where: { id: idTicket, whatsappId } });
+          if (ticketRefresh && ticketRefresh.lastFlowId) {
+            currentNode = nodes.find(n => n.id === ticketRefresh.lastFlowId);
+          }
+        }
+
+        if (!currentNode) {
+          currentNode = nodes.find(n => n.id === nextStage);
+        }
+
+        if (currentNode && currentNode.type === "typebot") {
+          nodeSelected = currentNode;
         } else {
-          console.log("UPDATE6...");
-          nodeSelected = nodes.filter(node => node.id === execFn)[0];
+          if (execFn === "") {
+            console.log("UPDATE5...");
+            nodeSelected = {
+              type: "menu"
+            };
+          } else {
+            console.log("UPDATE6...");
+            nodeSelected = nodes.filter(node => node.id === execFn)[0];
+          }
         }
       } else {
         console.log("UPDATE7...");
         const otherNode = nodes.filter((node) => node.id === next)[0]
-        if (otherNode) {
-          nodeSelected = otherNode;
-        }
+        nodeSelected = otherNode;
       }
+
 
       if (nodeSelected.type === "message") {
         let msg;
@@ -508,6 +524,8 @@ export const ActionsWebhookService = async (
 
 
       let isRandomizer: boolean;
+      let isTypebot: boolean;
+
       if (nodeSelected.type === "randomizer") {
         const selectedRandom = randomizarCaminho(nodeSelected.data.percent / 100);
 
@@ -524,6 +542,63 @@ export const ActionsWebhookService = async (
           noAlterNext = true;
         }
         isRandomizer = true;
+      }
+
+      if (nodeSelected.type === "typebot") {
+        if (!ticket && idTicket) {
+          ticket = await Ticket.findOne({
+            where: { id: idTicket, whatsappId, companyId }
+          });
+        }
+        console.log(`DEBUG TYPEBOT: ticket.lastFlowId: ${ticket?.lastFlowId}, nodeSelected.id: ${nodeSelected.id}`);
+
+        if (ticket.lastFlowId === nodeSelected.id && pressKey) {
+          console.log(`DEBUG TYPEBOT: Processing Answer. Node: ${nodeSelected.id}, Key: ${nodeSelected.data.key}, Value: ${pressKey}`);
+          const keyword = nodeSelected.data.key;
+          if (keyword) {
+            dataWebhook = { ...dataWebhook, [keyword]: pressKey };
+            console.log(`DEBUG TYPEBOT: Updated dataWebhook:`, dataWebhook);
+            await ticket.update({ dataWebhook });
+          }
+          pressKey = undefined;
+
+          const connection = connects.find(c => c.source === nodeSelected.id);
+          console.log("DEBUG TYPEBOT: Connection found:", connection);
+          if (connection) {
+            next = connection.target;
+            noAlterNext = true;
+            isTypebot = true;
+            console.log(`DEBUG TYPEBOT: Next set to: ${next}`);
+          } else {
+            console.log("DEBUG TYPEBOT: No connection found. Ending flow.");
+            next = "";
+          }
+        } else {
+          console.log("DEBUG TYPEBOT: Asking Question");
+          let bodyMsg = nodeSelected.data.message;
+          if (bodyMsg) {
+            const dataLocal = {
+              nome: createFieldJsonName,
+              numero: numberClient,
+              email: createFieldJsonEmail
+            };
+            bodyMsg = replaceMessages(bodyMsg, details, dataWebhook, dataLocal);
+
+            const ticketDetails = await ShowTicketService(ticket.id, companyId);
+            await SendWhatsAppMessage({ body: bodyMsg, ticket: ticketDetails, quotedMsg: null });
+            await ticketDetails.update({ lastMessage: formatBody(bodyMsg, ticket.contact) });
+          }
+
+          if (ticket) {
+            await ticket.update({
+              lastFlowId: nodeSelected.id,
+              flowWebhook: true,
+              dataWebhook,
+              flowStopped: idFlowDb.toString()
+            });
+          }
+          break;
+        }
       }
 
       let isMenu: boolean;
@@ -676,6 +751,9 @@ export const ActionsWebhookService = async (
         } else if (isRandomizer) {
           isRandomizer = false;
           result = next;
+        } else if (isTypebot) {
+          isTypebot = false;
+          result = next;
         } else {
           result = connects.filter(connect => connect.source === next)[0];
         }
@@ -723,9 +801,10 @@ export const ActionsWebhookService = async (
         }
       }
 
-      isContinue = false;
+      console.log(`DEBUG ACTION END LOOP ${i}: next: ${next}, noAlterNext: ${noAlterNext}, isContinue: ${isContinue}, isTypebot: ${isTypebot}`);
 
       if (next === "") {
+        console.log("DEBUG ACTION: Next is empty. Breaking loop.");
         break;
       }
 
