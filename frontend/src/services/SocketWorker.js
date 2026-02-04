@@ -1,7 +1,7 @@
 import io from "socket.io-client";
 
 class SocketWorker {
-  constructor(companyId , userId) {
+  constructor(companyId, userId) {
     if (!SocketWorker.instance) {
       this.companyId = companyId
       this.userId = userId
@@ -10,13 +10,14 @@ class SocketWorker {
       this.eventListeners = {}; // Armazena os ouvintes de eventos registrados
       SocketWorker.instance = this;
 
-    } 
+    }
 
     return SocketWorker.instance;
   }
 
   configureSocket() {
-    this.socket = io(`${process.env.REACT_APP_BACKEND_URL}/${this?.companyId}` , {
+    const socketUrl = process.env.REACT_APP_SOCKET_URL || process.env.REACT_APP_BACKEND_URL;
+    this.socket = io(`${socketUrl}/${this?.companyId}`, {
       autoConnect: true,
       reconnection: true,
       reconnectionDelay: 1000,
