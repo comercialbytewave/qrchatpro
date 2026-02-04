@@ -1,0 +1,40 @@
+# Etapa 1: Build
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Corrige erro OpenSSL + Webpack
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
+# Variáveis de build (serão substituídas no build)
+ARG REACT_APP_BACKEND_URL=https://qrchat.bytewave.com.br/api
+ARG REACT_APP_SOCKET_URL=https://qrchat.bytewave.com.br
+ARG REACT_APP_FACEBOOK_APP_ID=1415386853487738
+ARG REACT_APP_NAME_SYSTEM=QRChat
+ARG REACT_APP_NUMBER_SUPPORT=+5585998146212
+
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+ENV REACT_APP_SOCKET_URL=$REACT_APP_SOCKET_URL
+ENV REACT_APP_FACEBOOK_APP_ID=$REACT_APP_FACEBOOK_APP_ID
+ENV REACT_APP_NAME_SYSTEM=$REACT_APP_NAME_SYSTEM
+ENV REACT_APP_NUMBER_SUPPORT=$REACT_APP_NUMBER_SUPPORT
+
+COPY package.json package-lock.json ./
+
+RUN npm ci --legacy-peer-deps
+
+COPY . .
+RUN npm run build
+
+# Etapa 2: Runtime
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN npm install -g serve
+
+COPY --from=build /app/build ./build
+
+EXPOSE 3008
+
+CMD ["serve", "-s", "build", "-l", "3008"]
