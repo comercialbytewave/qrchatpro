@@ -7,8 +7,8 @@ WORKDIR /app
 ENV NODE_OPTIONS=--openssl-legacy-provider
 
 # Variáveis de build (serão substituídas no build)
-ARG REACT_APP_BACKEND_URL=https://qrchat.bytewave.com.br/api
-ARG REACT_APP_SOCKET_URL=https://qrchat.bytewave.com.br
+ARG REACT_APP_BACKEND_URL=https://beqrchat.bytewave.com.br
+ARG REACT_APP_SOCKET_URL=https://beqrchat.bytewave.com.br
 ARG REACT_APP_FACEBOOK_APP_ID=1415386853487738
 ARG REACT_APP_NAME_SYSTEM=QRChat
 ARG REACT_APP_NUMBER_SUPPORT=+5585998146212

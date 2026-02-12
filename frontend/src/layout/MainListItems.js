@@ -159,16 +159,18 @@ function ListItemLink(props) {
                   className={classes.badge}
                 >
                   <Avatar
-                    className={`${classes.iconHoverActive} ${isActive ? "active" : ""
-                      }`}
+                    className={`${classes.iconHoverActive} ${
+                      isActive ? "active" : ""
+                    }`}
                   >
                     {icon}
                   </Avatar>
                 </Badge>
               ) : (
                 <Avatar
-                  className={`${classes.iconHoverActive} ${isActive ? "active" : ""
-                    }`}
+                  className={`${classes.iconHoverActive} ${
+                    isActive ? "active" : ""
+                  }`}
                 >
                   {icon}
                 </Avatar>
@@ -466,7 +468,7 @@ const MainListItems = ({ collapsed, drawerClose }) => {
       <Can
         role={
           (user.profile === "user" && user.showDashboard === "enabled") ||
-            user.allowRealTime === "enabled"
+          user.allowRealTime === "enabled"
             ? "admin"
             : user.profile
         }
@@ -486,8 +488,9 @@ const MainListItems = ({ collapsed, drawerClose }) => {
               >
                 <ListItemIcon>
                   <Avatar
-                    className={`${classes.iconHoverActive} ${isManagementActive || managementHover ? "active" : ""
-                      }`}
+                    className={`${classes.iconHoverActive} ${
+                      isManagementActive || managementHover ? "active" : ""
+                    }`}
                   >
                     <Dashboard />
                   </Avatar>
@@ -690,10 +693,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                       >
                         <ListItemIcon>
                           <Avatar
-                            className={`${classes.iconHoverActive} ${isCampaignRouteActive || campaignHover
-                              ? "active"
-                              : ""
-                              }`}
+                            className={`${classes.iconHoverActive} ${
+                              isCampaignRouteActive || campaignHover
+                                ? "active"
+                                : ""
+                            }`}
                           >
                             <EventAvailableIcon />
                           </Avatar>
@@ -748,334 +752,426 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                 )}
               />
             )}
+            <List dense component="div" disablePadding>
+              {!showCustomers && (
+                <Can
+                  role={user.profile}
+                  perform="dashboard:view"
+                  yes={() => (
+                    <>
+                      <Tooltip
+                        title={
+                          collapsed
+                            ? i18n.t("mainDrawer.listItems.products")
+                            : ""
+                        }
+                        placement="right"
+                      >
+                        <ListItem
+                          dense
+                          button
+                          onClick={() =>
+                            setOpenCustomerSubmenu((prev) => !prev)
+                          }
+                          onMouseEnter={() => setCustomerHover(true)}
+                          onMouseLeave={() => setCustomerHover(false)}
+                        >
+                          <ListItemIcon>
+                            <Avatar
+                              className={`${classes.iconHoverActive} ${
+                                isCustomerRouteActive || customerHover
+                                  ? "active"
+                                  : ""
+                              }`}
+                            >
+                              <PortraitOutlined />
+                            </Avatar>
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={
+                              <Typography className={classes.listItemText}>
+                                {i18n.t("mainDrawer.listItems.customers")}
+                              </Typography>
+                            }
+                          />
+                          {openCustomerSubmenu ? (
+                            <ExpandLessIcon />
+                          ) : (
+                            <ExpandMoreIcon />
+                          )}
+                        </ListItem>
+                      </Tooltip>
+                      <Collapse
+                        in={openCustomerSubmenu}
+                        timeout="auto"
+                        unmountOnExit
+                        style={{
+                          backgroundColor:
+                            theme.mode === "light"
+                              ? "rgba(120,120,120,0.1)"
+                              : "rgba(120,120,120,0.5)",
+                        }}
+                      >
+                        <List dense component="div" disablePadding>
+                          <ListItemLink
+                            to="/customers"
+                            primary={i18n.t("mainDrawer.listItems.customers")}
+                            icon={<PersonAddOutlined />}
+                            tooltip={collapsed}
+                          />
+                          <ListItemLink
+                            to="/portifolios"
+                            primary={i18n.t("mainDrawer.listItems.portifolios")}
+                            icon={<AccountBalanceWalletOutlined />}
+                            tooltip={collapsed}
+                          />
+                        </List>
+                      </Collapse>
+                    </>
+                  )}
+                />
+              )}
+            </List>
 
             {/* VAREJO */}
-            {showSales && (<Can
-              role={user.profile}
-              perform="dashboard:view"
-              yes={() => (
-                <>
-                  <Tooltip
-                    title={
-                      collapsed ? i18n.t("mainDrawer.listItems.retail") : ""
-                    }
-                    placement="right"
-                  >
-                    <ListItem
-                      dense
-                      button
-                      onClick={() => setOpenRetailSubmenu((prev) => !prev)}
-                      onMouseEnter={() => setRetailHover(true)}
-                      onMouseLeave={() => setRetailHover(false)}
+            {showSales && (
+              <Can
+                role={user.profile}
+                perform="dashboard:view"
+                yes={() => (
+                  <>
+                    <Tooltip
+                      title={
+                        collapsed ? i18n.t("mainDrawer.listItems.retail") : ""
+                      }
+                      placement="right"
                     >
-                      <ListItemIcon>
-                        <Avatar
-                          className={`${classes.iconHoverActive} ${isRatailRouteActive || retailHover ? "active" : ""
+                      <ListItem
+                        dense
+                        button
+                        onClick={() => setOpenRetailSubmenu((prev) => !prev)}
+                        onMouseEnter={() => setRetailHover(true)}
+                        onMouseLeave={() => setRetailHover(false)}
+                      >
+                        <ListItemIcon>
+                          <Avatar
+                            className={`${classes.iconHoverActive} ${
+                              isRatailRouteActive || retailHover ? "active" : ""
                             }`}
-                        >
-                          <ShoppingBasket />
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Typography className={classes.listItemText}>
-                            {i18n.t("Varejo")}
-                          </Typography>
-                        }
-                      />
-                      {openRetailSubmenu ? (
-                        <ExpandLessIcon />
-                      ) : (
-                        <ExpandMoreIcon />
-                      )}
-                    </ListItem>
-                  </Tooltip>
+                          >
+                            <ShoppingBasket />
+                          </Avatar>
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Typography className={classes.listItemText}>
+                              {i18n.t("Varejo")}
+                            </Typography>
+                          }
+                        />
+                        {openRetailSubmenu ? (
+                          <ExpandLessIcon />
+                        ) : (
+                          <ExpandMoreIcon />
+                        )}
+                      </ListItem>
+                    </Tooltip>
 
-                  <Collapse
-                    in={openRetailSubmenu}
-                    timeout="auto"
-                    unmountOnExit
-                    style={{
-                      backgroundColor:
-                        theme.mode === "light"
-                          ? "rgba(120,120,120,0.1)"
-                          : "rgba(120,120,120,0.5)",
-                    }}
-                  >
-                    <List dense component="div" disablePadding>
-                      <ListItemLink
-                        to="/enterprises"
-                        primary={"Matriz"}
-                        icon={<Apartment />}
-                      />
-                      <ListItemLink
-                        to="/stores"
-                        primary={i18n.t("mainDrawer.listItems.stores")}
-                        icon={<Storefront />}
-                      />
-                      {/* VAREJO */}
-                      {!showCustomers && (
-                        <Can
-                          role={user.profile}
-                          perform="dashboard:view"
-                          yes={() => (
-                            <>
-                              <Tooltip
-                                title={
-                                  collapsed
-                                    ? i18n.t("mainDrawer.listItems.products")
-                                    : ""
-                                }
-                                placement="right"
-                              >
-                                <ListItem
-                                  dense
-                                  button
-                                  onClick={() =>
-                                    setOpenCustomerSubmenu((prev) => !prev)
-                                  }
-                                  onMouseEnter={() => setCustomerHover(true)}
-                                  onMouseLeave={() => setCustomerHover(false)}
-                                >
-                                  <ListItemIcon>
-                                    <Avatar
-                                      className={`${classes.iconHoverActive} ${isCustomerRouteActive || customerHover
-                                        ? "active"
-                                        : ""
-                                        }`}
-                                    >
-                                      <PortraitOutlined />
-                                    </Avatar>
-                                  </ListItemIcon>
-                                  <ListItemText
-                                    primary={
-                                      <Typography
-                                        className={classes.listItemText}
-                                      >
-                                        {i18n.t(
-                                          "mainDrawer.listItems.customers"
-                                        )}
-                                      </Typography>
-                                    }
-                                  />
-                                  {openCustomerSubmenu ? (
-                                    <ExpandLessIcon />
-                                  ) : (
-                                    <ExpandMoreIcon />
-                                  )}
-                                </ListItem>
-                              </Tooltip>
-                              <Collapse
-                                in={openCustomerSubmenu}
-                                timeout="auto"
-                                unmountOnExit
-                                style={{
-                                  backgroundColor:
-                                    theme.mode === "light"
-                                      ? "rgba(120,120,120,0.1)"
-                                      : "rgba(120,120,120,0.5)",
-                                }}
-                              >
-                                <List dense component="div" disablePadding>
-                                  <ListItemLink
-                                    to="/customers"
-                                    primary={i18n.t(
-                                      "mainDrawer.listItems.customers"
-                                    )}
-                                    icon={<PersonAddOutlined />}
-                                    tooltip={collapsed}
-                                  />
-                                  <ListItemLink
-                                    to="/portifolios"
-                                    primary={i18n.t(
-                                      "mainDrawer.listItems.portifolios"
-                                    )}
-                                    icon={<AccountBalanceWalletOutlined />}
-                                    tooltip={collapsed}
-                                  />
-                                </List>
-                              </Collapse>
-                            </>
-                          )}
+                    <Collapse
+                      in={openRetailSubmenu}
+                      timeout="auto"
+                      unmountOnExit
+                      style={{
+                        backgroundColor:
+                          theme.mode === "light"
+                            ? "rgba(120,120,120,0.1)"
+                            : "rgba(120,120,120,0.5)",
+                      }}
+                    >
+                      <List dense component="div" disablePadding>
+                        <ListItemLink
+                          to="/enterprises"
+                          primary={"Matriz"}
+                          icon={<Apartment />}
                         />
-                      )}
-                      {!showProducts && (
-                        <Can
-                          role={user.profile}
-                          perform="dashboard:view"
-                          yes={() => (
-                            <>
-                              <Tooltip
-                                title={
-                                  collapsed
-                                    ? i18n.t("mainDrawer.listItems.products")
-                                    : ""
-                                }
-                                placement="right"
-                              >
-                                <ListItem
-                                  dense
-                                  button
-                                  onClick={() =>
-                                    setOpenProductSubmenu((prev) => !prev)
-                                  }
-                                  onMouseEnter={() => setProductHover(true)}
-                                  onMouseLeave={() => setProductHover(false)}
-                                >
-                                  <ListItemIcon>
-                                    <Avatar
-                                      className={`${classes.iconHoverActive} ${isProductRouteActive || productHover
-                                        ? "active"
-                                        : ""
-                                        }`}
-                                    >
-                                      <Loyalty />
-                                    </Avatar>
-                                  </ListItemIcon>
-                                  <ListItemText
-                                    primary={
-                                      <Typography
-                                        className={classes.listItemText}
-                                      >
-                                        {i18n.t(
-                                          "mainDrawer.listItems.products"
-                                        )}
-                                      </Typography>
-                                    }
-                                  />
-                                  {openProductSubmenu ? (
-                                    <ExpandLessIcon />
-                                  ) : (
-                                    <ExpandMoreIcon />
-                                  )}
-                                </ListItem>
-                              </Tooltip>
-                              <Collapse
-                                in={openProductSubmenu}
-                                timeout="auto"
-                                unmountOnExit
-                                style={{
-                                  backgroundColor:
-                                    theme.mode === "light"
-                                      ? "rgba(120,120,120,0.1)"
-                                      : "rgba(120,120,120,0.5)",
-                                }}
-                              >
-                                <List dense component="div" disablePadding>
-                                  <ListItemLink
-                                    to="/categories"
-                                    primary={i18n.t(
-                                      "mainDrawer.listItems.categories"
-                                    )}
-                                    icon={<Style />}
-                                    tooltip={collapsed}
-                                  />
-                                  <ListItemLink
-                                    to="/products"
-                                    primary={i18n.t(
-                                      "mainDrawer.listItems.products"
-                                    )}
-                                    icon={<ArtTrack />}
-                                    tooltip={collapsed}
-                                  />
-                                </List>
-                              </Collapse>
-                            </>
-                          )}
+                        <ListItemLink
+                          to="/stores"
+                          primary={i18n.t("mainDrawer.listItems.stores")}
+                          icon={<Storefront />}
                         />
-                      )}
-                      {!showBudgets && (
-                        <Can
-                          role={user.profile}
-                          perform="dashboard:view"
-                          yes={() => (
-                            <>
-                              <Tooltip
-                                title={
-                                  collapsed
-                                    ? i18n.t("mainDrawer.listItems.budgets")
-                                    : ""
-                                }
-                                placement="right"
-                              >
-                                <ListItem
-                                  dense
-                                  button
-                                  onClick={() =>
-                                    setOpenBudgetSubmenu((prev) => !prev)
+                        {/* VAREJO */}
+                        {!showCustomers && (
+                          <Can
+                            role={user.profile}
+                            perform="dashboard:view"
+                            yes={() => (
+                              <>
+                                <Tooltip
+                                  title={
+                                    collapsed
+                                      ? i18n.t("mainDrawer.listItems.products")
+                                      : ""
                                   }
-                                  onMouseEnter={() => setBudgetHover(true)}
-                                  onMouseLeave={() => setBudgetHover(false)}
+                                  placement="right"
                                 >
-                                  <ListItemIcon>
-                                    <Avatar
-                                      className={`${classes.iconHoverActive} ${isBudgetRouteActive || budgetHover
-                                        ? "active"
-                                        : ""
+                                  <ListItem
+                                    dense
+                                    button
+                                    onClick={() =>
+                                      setOpenCustomerSubmenu((prev) => !prev)
+                                    }
+                                    onMouseEnter={() => setCustomerHover(true)}
+                                    onMouseLeave={() => setCustomerHover(false)}
+                                  >
+                                    <ListItemIcon>
+                                      <Avatar
+                                        className={`${
+                                          classes.iconHoverActive
+                                        } ${
+                                          isCustomerRouteActive || customerHover
+                                            ? "active"
+                                            : ""
                                         }`}
-                                    >
-                                      {openBudgetSubmenu ? (
-                                        <FolderOutlined />
-                                      ) : (
-                                        <FolderOpenOutlined />
+                                      >
+                                        <PortraitOutlined />
+                                      </Avatar>
+                                    </ListItemIcon>
+                                    <ListItemText
+                                      primary={
+                                        <Typography
+                                          className={classes.listItemText}
+                                        >
+                                          {i18n.t(
+                                            "mainDrawer.listItems.customers"
+                                          )}
+                                        </Typography>
+                                      }
+                                    />
+                                    {openCustomerSubmenu ? (
+                                      <ExpandLessIcon />
+                                    ) : (
+                                      <ExpandMoreIcon />
+                                    )}
+                                  </ListItem>
+                                </Tooltip>
+                                <Collapse
+                                  in={openCustomerSubmenu}
+                                  timeout="auto"
+                                  unmountOnExit
+                                  style={{
+                                    backgroundColor:
+                                      theme.mode === "light"
+                                        ? "rgba(120,120,120,0.1)"
+                                        : "rgba(120,120,120,0.5)",
+                                  }}
+                                >
+                                  <List dense component="div" disablePadding>
+                                    <ListItemLink
+                                      to="/customers"
+                                      primary={i18n.t(
+                                        "mainDrawer.listItems.customers"
                                       )}
-                                    </Avatar>
-                                  </ListItemIcon>
-                                  <ListItemText
-                                    primary={
-                                      <Typography
-                                        className={classes.listItemText}
-                                      >
-                                        {"Auxiliares"}
-                                      </Typography>
+                                      icon={<PersonAddOutlined />}
+                                      tooltip={collapsed}
+                                    />
+                                    <ListItemLink
+                                      to="/portifolios"
+                                      primary={i18n.t(
+                                        "mainDrawer.listItems.portifolios"
+                                      )}
+                                      icon={<AccountBalanceWalletOutlined />}
+                                      tooltip={collapsed}
+                                    />
+                                  </List>
+                                </Collapse>
+                              </>
+                            )}
+                          />
+                        )}
+                        {!showProducts && (
+                          <Can
+                            role={user.profile}
+                            perform="dashboard:view"
+                            yes={() => (
+                              <>
+                                <Tooltip
+                                  title={
+                                    collapsed
+                                      ? i18n.t("mainDrawer.listItems.products")
+                                      : ""
+                                  }
+                                  placement="right"
+                                >
+                                  <ListItem
+                                    dense
+                                    button
+                                    onClick={() =>
+                                      setOpenProductSubmenu((prev) => !prev)
                                     }
-                                  />
-                                  {openBudgetSubmenu ? (
-                                    <ExpandLessIcon />
-                                  ) : (
-                                    <ExpandMoreIcon />
-                                  )}
-                                </ListItem>
-                              </Tooltip>
-                              <Collapse
-                                in={openBudgetSubmenu}
-                                timeout="auto"
-                                unmountOnExit
-                                style={{
-                                  backgroundColor:
-                                    theme.mode === "light"
-                                      ? "rgba(120,120,120,0.1)"
-                                      : "rgba(120,120,120,0.5)",
-                                }}
-                              >
-                                <List dense component="div" disablePadding>
-                                  <ListItemLink
-                                    to="/payments"
-                                    primary={i18n.t(
-                                      "mainDrawer.listItems.paymentMethods"
+                                    onMouseEnter={() => setProductHover(true)}
+                                    onMouseLeave={() => setProductHover(false)}
+                                  >
+                                    <ListItemIcon>
+                                      <Avatar
+                                        className={`${
+                                          classes.iconHoverActive
+                                        } ${
+                                          isProductRouteActive || productHover
+                                            ? "active"
+                                            : ""
+                                        }`}
+                                      >
+                                        <Loyalty />
+                                      </Avatar>
+                                    </ListItemIcon>
+                                    <ListItemText
+                                      primary={
+                                        <Typography
+                                          className={classes.listItemText}
+                                        >
+                                          {i18n.t(
+                                            "mainDrawer.listItems.products"
+                                          )}
+                                        </Typography>
+                                      }
+                                    />
+                                    {openProductSubmenu ? (
+                                      <ExpandLessIcon />
+                                    ) : (
+                                      <ExpandMoreIcon />
                                     )}
-                                    icon={<LocalAtmIcon />}
-                                    tooltip={collapsed}
-                                  />
-                                  <ListItemLink
-                                    to="/statusBudGets"
-                                    primary={i18n.t(
-                                      "mainDrawer.listItems.statusBudGets"
+                                  </ListItem>
+                                </Tooltip>
+                                <Collapse
+                                  in={openProductSubmenu}
+                                  timeout="auto"
+                                  unmountOnExit
+                                  style={{
+                                    backgroundColor:
+                                      theme.mode === "light"
+                                        ? "rgba(120,120,120,0.1)"
+                                        : "rgba(120,120,120,0.5)",
+                                  }}
+                                >
+                                  <List dense component="div" disablePadding>
+                                    <ListItemLink
+                                      to="/categories"
+                                      primary={i18n.t(
+                                        "mainDrawer.listItems.categories"
+                                      )}
+                                      icon={<Style />}
+                                      tooltip={collapsed}
+                                    />
+                                    <ListItemLink
+                                      to="/products"
+                                      primary={i18n.t(
+                                        "mainDrawer.listItems.products"
+                                      )}
+                                      icon={<ArtTrack />}
+                                      tooltip={collapsed}
+                                    />
+                                  </List>
+                                </Collapse>
+                              </>
+                            )}
+                          />
+                        )}
+                        {!showBudgets && (
+                          <Can
+                            role={user.profile}
+                            perform="dashboard:view"
+                            yes={() => (
+                              <>
+                                <Tooltip
+                                  title={
+                                    collapsed
+                                      ? i18n.t("mainDrawer.listItems.budgets")
+                                      : ""
+                                  }
+                                  placement="right"
+                                >
+                                  <ListItem
+                                    dense
+                                    button
+                                    onClick={() =>
+                                      setOpenBudgetSubmenu((prev) => !prev)
+                                    }
+                                    onMouseEnter={() => setBudgetHover(true)}
+                                    onMouseLeave={() => setBudgetHover(false)}
+                                  >
+                                    <ListItemIcon>
+                                      <Avatar
+                                        className={`${
+                                          classes.iconHoverActive
+                                        } ${
+                                          isBudgetRouteActive || budgetHover
+                                            ? "active"
+                                            : ""
+                                        }`}
+                                      >
+                                        {openBudgetSubmenu ? (
+                                          <FolderOutlined />
+                                        ) : (
+                                          <FolderOpenOutlined />
+                                        )}
+                                      </Avatar>
+                                    </ListItemIcon>
+                                    <ListItemText
+                                      primary={
+                                        <Typography
+                                          className={classes.listItemText}
+                                        >
+                                          {"Auxiliares"}
+                                        </Typography>
+                                      }
+                                    />
+                                    {openBudgetSubmenu ? (
+                                      <ExpandLessIcon />
+                                    ) : (
+                                      <ExpandMoreIcon />
                                     )}
-                                    icon={<WrapText />}
-                                    tooltip={collapsed}
-                                  />
-                                </List>
-                              </Collapse>
-                            </>
-                          )}
-                        />
-                      )}
-                    </List>
-                  </Collapse>
-                </>
-              )}
-            />)}
+                                  </ListItem>
+                                </Tooltip>
+                                <Collapse
+                                  in={openBudgetSubmenu}
+                                  timeout="auto"
+                                  unmountOnExit
+                                  style={{
+                                    backgroundColor:
+                                      theme.mode === "light"
+                                        ? "rgba(120,120,120,0.1)"
+                                        : "rgba(120,120,120,0.5)",
+                                  }}
+                                >
+                                  <List dense component="div" disablePadding>
+                                    <ListItemLink
+                                      to="/payments"
+                                      primary={i18n.t(
+                                        "mainDrawer.listItems.paymentMethods"
+                                      )}
+                                      icon={<LocalAtmIcon />}
+                                      tooltip={collapsed}
+                                    />
+                                    <ListItemLink
+                                      to="/statusBudGets"
+                                      primary={i18n.t(
+                                        "mainDrawer.listItems.statusBudGets"
+                                      )}
+                                      icon={<WrapText />}
+                                      tooltip={collapsed}
+                                    />
+                                  </List>
+                                </Collapse>
+                              </>
+                            )}
+                          />
+                        )}
+                      </List>
+                    </Collapse>
+                  </>
+                )}
+              />
+            )}
 
             {/* INTEGRAÇÕES */}
             <Can
@@ -1100,10 +1196,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                     >
                       <ListItemIcon>
                         <Avatar
-                          className={`${classes.iconHoverActive} ${isIntegrationRouteActive || integrationHover
-                            ? "active"
-                            : ""
-                            }`}
+                          className={`${classes.iconHoverActive} ${
+                            isIntegrationRouteActive || integrationHover
+                              ? "active"
+                              : ""
+                          }`}
                         >
                           <Memory />
                         </Avatar>
@@ -1192,10 +1289,11 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                               >
                                 <ListItemIcon>
                                   <Avatar
-                                    className={`${classes.iconHoverActive} ${isFlowbuilderRouteActive || flowHover
-                                      ? "active"
-                                      : ""
-                                      }`}
+                                    className={`${classes.iconHoverActive} ${
+                                      isFlowbuilderRouteActive || flowHover
+                                        ? "active"
+                                        : ""
+                                    }`}
                                   >
                                     <Webhook />
                                   </Avatar>
@@ -1301,7 +1399,6 @@ const MainListItems = ({ collapsed, drawerClose }) => {
                 />
               )}
             />
-
 
             {user.super && (
               <ListItemLink
