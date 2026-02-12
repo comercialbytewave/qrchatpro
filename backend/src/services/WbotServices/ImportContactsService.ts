@@ -10,7 +10,7 @@ import path from "path";
 import fs from 'fs';
 
 const ImportContactsService = async (companyId: number): Promise<void> => {
-  const defaultWhatsapp = await GetDefaultWhatsApp(companyId);
+  const defaultWhatsapp = await GetDefaultWhatsApp(null, companyId);
   const wbot = getWbot(defaultWhatsapp.id);
 
   let phoneContacts;
@@ -20,7 +20,7 @@ const ImportContactsService = async (companyId: number): Promise<void> => {
     phoneContacts = JSON.parse(JSON.stringify(contactsString.contacts));
 
     const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
-    const beforeFilePath = path.join(publicFolder,`company${companyId}`, 'contatos_antes.txt');
+    const beforeFilePath = path.join(publicFolder, `company${companyId}`, 'contatos_antes.txt');
     fs.writeFile(beforeFilePath, JSON.stringify(phoneContacts, null, 2), (err) => {
       if (err) {
         logger.error(`Failed to write contacts to file: ${err}`);
@@ -35,7 +35,7 @@ const ImportContactsService = async (companyId: number): Promise<void> => {
   }
 
   const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
-  const afterFilePath = path.join(publicFolder,`company${companyId}`, 'contatos_depois.txt');
+  const afterFilePath = path.join(publicFolder, `company${companyId}`, 'contatos_depois.txt');
   fs.writeFile(afterFilePath, JSON.stringify(phoneContacts, null, 2), (err) => {
     if (err) {
       logger.error(`Failed to write contacts to file: ${err}`);

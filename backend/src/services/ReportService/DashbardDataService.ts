@@ -4,8 +4,7 @@ import { QueryTypes } from "sequelize";
 import * as _ from "lodash";
 import sequelize from "../../database";
 import path from "path";
-const fs = require('fs');
-
+const fs = require("fs");
 
 export interface DashboardData {
   counters: any;
@@ -23,8 +22,7 @@ export default async function DashboardDataService(
   params: Params
 ): Promise<DashboardData> {
   const query = `
-    with
-    traking as (
+    with traking as (
       select
         c.name "companyName",
         u.name "userName",
@@ -32,23 +30,35 @@ export default async function DashboardDataService(
         w.name "whatsappName",
         ct.name "contactName",
         ct.number "contactNumber",
+
         (t."status" = 'closed') "finished",
-        (tt."userId" is null and coalesce(tt."closedAt",tt."finishedAt") is null and t."status" = 'pending') "pending",        (t."status" = 'group') "groups",
+        (
+          tt."userId" is null
+          and coalesce(tt."closedAt", tt."finishedAt") is null
+          and t."status" = 'pending'
+        ) "pending",
+        (t."status" = 'group') "groups",
         (t."isActiveDemand" = true) "active",
         (t."isActiveDemand" = false) "passive",
-        coalesce((
-          (date_part('day', age(coalesce(tt."closedAt",tt."finishedAt"))) * 24 * 60) +
-          (date_part('hour', age(coalesce(tt."closedAt",tt."finishedAt"), tt."startedAt")) * 60) +
-          (date_part('minutes', age(coalesce(tt."closedAt",tt."finishedAt"), tt."startedAt")))
-        ), 0) "supportTime",
-        coalesce((
-          (date_part('day', age( tt."queuedAt", tt."startedAt")) * 24 * 60) +
-          (date_part('hour', age(tt."queuedAt", tt."startedAt")) * 60) +
-          (date_part('minutes', age(tt."queuedAt", tt."startedAt")))
-        ), 0) "waitTime",
+
+        /* TEMPO DE ATENDIMENTO (SUPPORT TIME) */
+        coalesce(
+          extract(epoch from (coalesce(tt."closedAt", tt."finishedAt") - tt."startedAt")) / 60,
+          0
+        ) "supportTime",
+
+        /* ✅ TME CORRIGIDO (WAIT TIME) */
+        case
+          when tt."queuedAt" is not null
+          and tt."startedAt" is not null
+          then extract(epoch from (tt."startedAt" - tt."queuedAt")) / 60
+          else null
+        end "waitTime",
+
         t.status,
         tt.*,
         ct."id" "contactId"
+
       from "TicketTraking" tt
       left join "Companies" c on c.id = tt."companyId"
       left join "Users" u on u.id = tt."userId"
@@ -59,8 +69,8 @@ export default async function DashboardDataService(
     ),
     counters as (
       select
-        (select avg("supportTime") from traking where "supportTime" > 0) "avgSupportTime",
-        (select avg("waitTime") from traking where "waitTime" > 0) "avgWaitTime",        
+        (select avg("supportTime") from traking where "supportTime" > 0 ) "avgSupportTime",
+        (select avg("waitTime") from traking  where "waitTime" is not null and "waitTime" > 0 ) "avgWaitTime",
         (select count(id) from traking where finished) "supportFinished",
         (
           select count(distinct "id")

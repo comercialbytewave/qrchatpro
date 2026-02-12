@@ -71,10 +71,10 @@ const FindOrCreateTicketService = async (
     if (isCampaign) {
       await ticket.update({
         userId: userId !== ticket.userId ? ticket.userId : userId,
-        queueId: queueId !== ticket.queueId ? ticket.queueId : queueId,
+        queueId: queueId !== ticket.queueId && ticket.queueId ? ticket.queueId : queueId,
       })
     } else {
-      await ticket.update({ unreadMessages, isBot: false });
+      await ticket.update({ unreadMessages, queueId: queueId !== ticket.queueId && ticket.queueId ? ticket.queueId : queueId, isBot: false });
     }
 
     ticket = await ShowTicketService(ticket.id, companyId);

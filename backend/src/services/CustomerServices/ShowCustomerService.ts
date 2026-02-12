@@ -6,7 +6,7 @@ import Contact from "../../models/Contact";
 
 interface Request {
   id: string | number;
-  companyId: number;
+  companyId: string | number;
 }
 
 const ShowCustomerService = async ({ id, companyId }: Request): Promise<Customer> => {

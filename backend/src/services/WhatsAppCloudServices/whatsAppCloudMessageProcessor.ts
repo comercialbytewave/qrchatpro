@@ -209,8 +209,12 @@ const verifyContact = async (
     isGroup: false,
     companyId,
     remoteJid: `${number}@s.whatsapp.net`,
-    whatsappId: whatsapp.id
-  };
+    whatsappId: whatsapp.id,
+    // ⬇️ Adicione estes campos para satisfazer o contrato do Service
+    lid: null,         // Identificador LID (WhatsApp)
+    customerId: null,  // ID de cliente interno
+    wbot: null         // Instância da sessão (socket)
+};
 
   const contact = await CreateOrUpdateContactService(contactData);
   return contact;

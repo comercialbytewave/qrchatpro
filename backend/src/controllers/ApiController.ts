@@ -56,7 +56,7 @@ interface ContactData {
   isGroup: boolean;
 }
 
-const createContact = async (whatsappId: number | undefined, companyId: number | undefined, newContact: string, userId?: number | 0, wbot?: any) => {
+const createContact = async (whatsappId: number | undefined, companyId: number | undefined, newContact: string, userId?: number | 0, queueId?: number | 0, wbot?: any) => {
   try {
 
 
@@ -71,7 +71,10 @@ const createContact = async (whatsappId: number | undefined, companyId: number |
       companyId,
       whatsappId,
       remoteJid: validNumber.length > 17 ? `${validNumber}@g.us` : `${validNumber}@s.whatsapp.net`,
-      wbot
+      wbot,
+      // ⬇️ Adicione estas linhas para sanar o erro TS2345
+      lid: null,
+      customerId: null
     };
 
     const contact = await CreateOrUpdateContactService(contactData);
@@ -102,7 +105,7 @@ const createContact = async (whatsappId: number | undefined, companyId: number |
         whatsapp,
         0,
         companyId,
-        null,
+        queueId,
         userId,
         null,
         whatsapp.channel,
@@ -115,7 +118,7 @@ const createContact = async (whatsappId: number | undefined, companyId: number |
       return ticket;
     });
 
-    if (createTicket && createTicket.channel === "whatsapp") {
+    if (createTicket && createTicket.channel === "whatsapp" && ( userId !== null && userId?.toString() !== '')) {
       SetTicketMessagesAsRead(createTicket);
 
       await FindOrCreateATicketTrakingService({ ticketId: createTicket.id, companyId, whatsappId: whatsapp.id, userId });
@@ -322,7 +325,7 @@ export const index = async (req: Request, res: Response): Promise<Response> => {
     }
   } else {
 
-    const contactAndTicket = await createContact(whatsapp.id, companyId, newContact.number, userId, wbot);
+    const contactAndTicket = await createContact(whatsapp.id, companyId, newContact.number, userId, queue.id, wbot);
 
     let sentMessage
 

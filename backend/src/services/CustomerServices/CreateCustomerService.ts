@@ -8,7 +8,7 @@ interface Request {
   document: string;
   fullName: string;
   email: string;
-  birthday?: Date;
+  birthday?: String;
   portifolioId: number | string;
   customerDefault?: boolean;
   companyId: number;
@@ -52,9 +52,9 @@ const CreateCustomerService = async ({
       return customerExists;
     }
   }
-
+  
   const [customer] = await Customer.findOrCreate({
-    where: { document, fullName, email, birthday, portifolioId, customerDefault, companyId },
+    where: { document, companyId },
     defaults: { document, fullName, email, birthday, portifolioId, customerDefault, companyId }
   });
 

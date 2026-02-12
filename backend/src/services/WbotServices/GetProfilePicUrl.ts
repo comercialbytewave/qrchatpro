@@ -7,13 +7,13 @@ const GetProfilePicUrl = async (
   companyId: number,
   contact?: Contact,
 ): Promise<string> => {
-  const defaultWhatsapp = await GetDefaultWhatsApp(companyId);
+  const defaultWhatsapp = await GetDefaultWhatsApp(null, companyId);
 
   const wbot = getWbot(defaultWhatsapp.id);
 
   let profilePicUrl: string;
   try {
-    profilePicUrl = await wbot.profilePictureUrl(contact && contact.isGroup ? contact.remoteJid:`${number}@s.whatsapp.net`, "image");
+    profilePicUrl = await wbot.profilePictureUrl(contact && contact.isGroup ? contact.remoteJid : `${number}@s.whatsapp.net`, "image");
   } catch (error) {
     profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
   }

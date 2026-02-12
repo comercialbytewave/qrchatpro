@@ -11,6 +11,7 @@ export const initIO = (httpServer: Server): SocketIO => {
   // Filter out undefined origins
   const allowedOrigins = [
     process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL_HOMEPLACE,
     process.env.ECOMMERCE_URL
   ].filter(Boolean) as string[];
 

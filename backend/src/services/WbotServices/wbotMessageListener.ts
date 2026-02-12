@@ -676,31 +676,47 @@ const verifyContact = async (
 ): Promise<Contact> => {
 
   let profilePicUrl: string = "";
-  // try {
-  //   profilePicUrl = await wbot.profilePictureUrl(msgContact.id, "image");
-  // } catch (e) {
-  //   Sentry.captureException(e);
-  //   profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
-  // }
+
+  const isGroup = msgContact.id.includes("@g.us");
+  const isLid = msgContact.id.includes("@lid");
+  const isWhatsappNumber = msgContact.id.includes("@s.whatsapp.net");
+
+  let number: string = ""; // Inicialize como string vazia para evitar conflito com 'any'
+  let lid: string = "";    // Inicialize como string vazia
+
+  // 📌 TRATAMENTO DO LID
+  if (isLid) {
+    lid = msgContact.id.replace("@lid", "");
+  }
+
+  // 📌 TRATAMENTO DO TELEFONE
+  if (isWhatsappNumber) {
+    number = msgContact.id.replace(/\D/g, "");
+    lid = msgContact.lid ? msgContact.lid.replace("@lid", "") : null;
+  }
+
+  // 📌 GRUPO
+  if (isGroup) {
+    number = msgContact.id.replace("@g.us", "");
+  }
 
   const contactData = {
-    name: msgContact.name || msgContact.id.replace(/\D/g, ""),
-    number: msgContact.id.replace(/\D/g, ""),
-    lid: msgContact.lid,
+    name: msgContact.name || number || lid || "Contato",
+    number: number || "",   
+    lid: lid || "",         
     profilePicUrl,
-    isGroup: msgContact.id.includes("g.us"),
+    isGroup,
     companyId,
     remoteJid: msgContact.id,
     whatsappId: wbot.id,
-    wbot
+    wbot,
+    // ⬇️ RESOLVE O ERRO TS(2345)
+    customerId: null,
+    channel: "whatsapp" // Sugestão: adicione se o seu serviço exigir o canal
   };
 
-  if (contactData.isGroup) {
-    contactData.number = msgContact.id.replace("@g.us", "");
-  }
-
-  const contact = await CreateOrUpdateContactService(contactData);
-
+  // O 'as any' aqui é uma segurança caso o seu Service tenha tipos estritos de Session
+  const contact = await CreateOrUpdateContactService(contactData as any);
   return contact;
 };
 
@@ -3445,8 +3461,8 @@ const handleMessage = async (
       !ticket.queue &&
       !ticket.user &&
       //ticket.isBot &&
-      whatsapp.integrationId &&
-      !ticket.useIntegration
+      whatsapp.integrationId //&&
+     // !ticket.useIntegration
     ) {
 
       const integrations = await ShowQueueIntegrationService(whatsapp.integrationId, companyId);
@@ -3798,16 +3814,19 @@ const wbotMessageListener = (wbot: Session, companyId: number): void => {
         const newUrl = contact.imgUrl === ""
           ? ""
           : await wbot!.profilePictureUrl(contact.id!).catch(() => null)
-        const contactData = {
-          name: contact.id.replace(/\D/g, ""),
-          number: contact.id.replace(/\D/g, ""),
-          isGroup: contact.id.includes("@g.us") ? true : false,
-          companyId: companyId,
-          remoteJid: contact.id,
-          profilePicUrl: newUrl,
-          whatsappId: wbot.id,
-          wbot: wbot
-        }
+          const contactData = {
+            name: contact.id.replace(/\D/g, ""),
+            number: contact.id.replace(/\D/g, ""),
+            isGroup: contact.id.includes("@g.us"),
+            companyId: companyId,
+            remoteJid: contact.id,
+            profilePicUrl: newUrl,
+            whatsappId: wbot.id,
+            wbot: wbot,
+            // Adicione os campos que o TS está cobrando:
+            lid: contact.lid || null, 
+            customerId: null // Ou busque o ID do cliente se disponível
+          };
 
         await CreateOrUpdateContactService(contactData)
       }
@@ -3835,7 +3854,11 @@ const wbotMessageListener = (wbot: Session, companyId: number): void => {
         remoteJid: group.id,
         profilePicUrl,
         whatsappId: wbot.id,
-        wbot: wbot
+        wbot: wbot,
+        // --- ADICIONE ESTES CAMPOS PARA RESOLVER O ERRO ---
+        lid: null,         // Ou group.id se o seu sistema aceitar o JID como LID
+        customerId: null   // Geralmente null, pois grupos não são "clientes" individuais
+        // ------------------------------------------------
       };
 
       const contact = await CreateOrUpdateContactService(contactData);

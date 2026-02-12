@@ -365,27 +365,42 @@ export const upload = async (req: Request, res: Response) => {
 };
 
 export const getContactProfileURL = async (req: Request, res: Response) => {
-  const { number } = req.params
+  const { number } = req.params;
   const { companyId } = req.user;
 
-  if (number) {
+  try {
     const validNumber = await CheckContactNumber(number, companyId);
-
     const profilePicUrl = await GetProfilePicUrl(validNumber, companyId);
-
-    const contact = await NumberSimpleListService({ number: validNumber, companyId: companyId })
+    const contact = await NumberSimpleListService({ number: validNumber, companyId: companyId });
 
     let obj: any;
     if (contact.length > 0) {
       obj = {
         contactId: contact[0].id,
         profilePicUrl: profilePicUrl
-      }
+      };
     } else {
       obj = {
         contactId: 0,
         profilePicUrl: profilePicUrl
-      }
+      };
+    }
+    return res.status(200).json(obj);
+  } catch (error) {
+    // Caso de erro (número não existe no WhatsApp ou erro de conexão), retorna sem profilePicUrl
+    const contact = await NumberSimpleListService({ number: number, companyId: companyId }).catch(() => []);
+
+    let obj: any;
+    if (contact.length > 0) {
+      obj = {
+        contactId: contact[0].id,
+        profilePicUrl: null // Define como null ou uma URL padrão
+      };
+    } else {
+      obj = {
+        contactId: 0,
+        profilePicUrl: null
+      };
     }
     return res.status(200).json(obj);
   }

@@ -91,10 +91,16 @@ const ListContactsService = async ({
   }
 
   if (isGroup === "false") {
-    console.log("isGroup", isGroup)
+    // console.log("isGroup", isGroup)
     whereCondition = {
       ...whereCondition,
-      isGroup: false
+      isGroup: false,
+      number: {
+        [Op.notLike]: '%@%',
+        [Op.and]: [
+          Sequelize.where(Sequelize.fn('LENGTH', Sequelize.col('number')), { [Op.lte]: 15 })
+        ]
+      }
     }
   }
 

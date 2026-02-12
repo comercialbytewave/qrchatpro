@@ -1,47 +1,43 @@
 import { getIO } from "../../libs/socket";
 import CompaniesSettings from "../../models/CompaniesSettings";
 import Contact from "../../models/Contact";
-import ContactCustomField from "../../models/ContactCustomField";
 import fs from "fs";
 import path, { join } from "path";
 import logger from "../../utils/logger";
-import { isNil } from "lodash";
 import Whatsapp from "../../models/Whatsapp";
 import * as Sentry from "@sentry/node";
 import { Op } from "sequelize";
+import { isNil } from "lodash";
 
-const axios = require('axios');
+const axios = require("axios");
 
-interface ExtraInfo extends ContactCustomField {
-  name: string;
-  value: string;
-}
+/* ======================================================
+   Utils
+====================================================== */
 
-interface Request {
-  name: string;
-  number: string;
-  lid?: string | null;
-  isGroup: boolean;
-  email?: string;
-  profilePicUrl?: string;
-  companyId: number;
-  customerId?: number;
-  channel?: string;
-  extraInfo?: ExtraInfo[];
-  remoteJid?: string;
-  whatsappId?: number;
-  wbot?: any;
-}
+const hasValidValue = (value?: string | null): boolean =>
+  typeof value === "string" && value.trim().length > 0;
 
-const downloadProfileImage = async ({
-  profilePicUrl,
-  companyId,
-  contact
-}) => {
+const extractNumberFromRemoteJid = (remoteJid?: string): string | null => {
+  if (!remoteJid) return null;
+
+  if (remoteJid.includes("@s.whatsapp.net")) {
+    return remoteJid.replace(/\D/g, "");
+  }
+
+  if (remoteJid.includes("@g.us")) {
+    return remoteJid.replace("@g.us", "");
+  }
+
+  if (remoteJid.includes("@lid")) {
+    return remoteJid.replace(/\D/g, "");
+  }
+
+  return null;
+};
+
+const downloadProfileImage = async ({ profilePicUrl, companyId }) => {
   const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
-  let filename;
-
-
   const folder = path.resolve(publicFolder, `company${companyId}`, "contacts");
 
   if (!fs.existsSync(folder)) {
@@ -50,129 +46,182 @@ const downloadProfileImage = async ({
   }
 
   try {
-
     const response = await axios.get(profilePicUrl, {
-      responseType: 'arraybuffer'
+      responseType: "arraybuffer"
     });
 
-    console.log(contact)
-
-    filename = `${new Date().getTime()}.jpeg`;
+    const filename = `${Date.now()}.jpeg`;
     fs.writeFileSync(join(folder, filename), response.data);
-
-  } catch (error) {
-    console.error(error)
+    return filename;
+  } catch {
+    return null;
   }
+};
 
-  return filename
-}
+/* ======================================================
+   Service
+====================================================== */
 
 const CreateOrUpdateContactService = async ({
   name,
   number: rawNumber,
   lid,
-  profilePicUrl,
+  profilePicUrl = "",
   isGroup,
   email = "",
   channel = "whatsapp",
   companyId,
   customerId,
-  extraInfo = [],
   remoteJid = "",
   whatsappId,
   wbot
-}: Request): Promise<Contact> => {
+}): Promise<Contact> => {
   try {
-    let createContact = false;
-    const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
-    const number = isGroup ? rawNumber : rawNumber.replace(/[^0-9]/g, "");
     const io = getIO();
-    let contact: Contact | null;
+    let createContact = false;
 
-    contact = await Contact.findOne({
+    /* =====================================
+       NUMBER RESOLUTION (SAFE)
+    ====================================== */
+
+    const incomingNumber = isGroup
+      ? rawNumber
+      : rawNumber
+      ? rawNumber.replace(/\D/g, "")
+      : null;
+
+    const resolvedFromRemoteJid = extractNumberFromRemoteJid(remoteJid);
+
+    const numberForCreate =
+      incomingNumber ||
+      (hasValidValue(lid) ? lid.replace(/\D/g, "") : null) ||
+      resolvedFromRemoteJid;
+
+    /* =====================================
+       FIND CONTACT
+    ====================================== */
+
+    const whereOr: any[] = [];
+
+    if (hasValidValue(lid)) whereOr.push({ lid });
+    if (hasValidValue(incomingNumber))
+      whereOr.push({ number: incomingNumber });
+    if (!incomingNumber && resolvedFromRemoteJid)
+      whereOr.push({ number: resolvedFromRemoteJid });
+
+    const contact = await Contact.findOne({
       where: {
-        number,
         companyId,
-        [Op.or]: [lid ? { lid } : {}, { number }]
+        ...(whereOr.length ? { [Op.or]: whereOr } : {})
       }
     });
 
-    let updateImage = (!contact || contact?.profilePicUrl !== profilePicUrl && profilePicUrl !== "") && wbot || false;
+    let updateImage =
+      !!wbot &&
+      profilePicUrl &&
+      (!contact || contact.profilePicUrl !== profilePicUrl);
+
+    /* =====================================
+       UPDATE CONTACT
+    ====================================== */
 
     if (contact) {
-      const dataUpdate: any = { profilePicUrl, lid: lid || contact.lid };
-      contact.remoteJid = remoteJid;
-      contact.profilePicUrl = profilePicUrl || null;
+      const dataUpdate: any = {};
+
+      // 🔒 Nunca sobrescrever telefone real por LID
+      if (
+        hasValidValue(incomingNumber) &&
+        contact.number !== incomingNumber
+      ) {
+        dataUpdate.number = incomingNumber;
+      }
+
+      // 🔒 Só salva lid se ainda não existir
+      if (!hasValidValue(contact.lid) && hasValidValue(lid)) {
+        dataUpdate.lid = lid;
+      }
+
+      if (
+        hasValidValue(name) &&
+        (!hasValidValue(contact.name) || contact.name === contact.lid)
+      ) {
+        dataUpdate.name = name;
+      }
+
+      contact.remoteJid = contact.remoteJid  ? contact.remoteJid :remoteJid;
       contact.isGroup = isGroup;
-      if (isNil(contact.whatsappId)) {
+
+      if (hasValidValue(profilePicUrl)) {
+        contact.profilePicUrl = profilePicUrl;
+      }
+
+      if (isNil(contact.whatsappId) && whatsappId) {
         const whatsapp = await Whatsapp.findOne({
           where: { id: whatsappId, companyId }
         });
-
-
-        if (whatsapp) {
-          contact.whatsappId = whatsappId;
-        }
+        if (whatsapp) contact.whatsappId = whatsappId;
       }
-      const folder = path.resolve(publicFolder, `company${companyId}`, "contacts");
 
-      let fileName, oldPath = "";
-      if (contact.urlPicture) {
-
-        oldPath = path.resolve(contact.urlPicture.replace(/\\/g, '/'));
-        fileName = path.join(folder, oldPath.split('\\').pop());
-      }
-      if (!fs.existsSync(fileName) || contact.profilePicUrl === "") {
-        if (wbot && ['whatsapp'].includes(channel)) {
-          try {
-            profilePicUrl = await wbot.profilePictureUrl(remoteJid, "image");
-          } catch (e) {
-            Sentry.captureException(e);
-            profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
-          }
-          contact.profilePicUrl = profilePicUrl;
+      if (
+        wbot &&
+        channel === "whatsapp" &&
+        (!contact.urlPicture || contact.profilePicUrl === "")
+      ) {
+        try {
+          contact.profilePicUrl = await wbot.profilePictureUrl(
+            remoteJid,
+            "image"
+          );
           updateImage = true;
+        } catch (e) {
+          Sentry.captureException(e);
+          contact.profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
         }
       }
 
-      if (contact.number === lid && lid !== number) {
-        dataUpdate.number = number;
+      if (Object.keys(dataUpdate).length) {
+        await contact.update(dataUpdate);
       }
-  
-      if (contact.name === contact.lid && name !== contact.name) {
-        dataUpdate.name = name;
-      }
-      
-      await contact.update(dataUpdate);
-      await contact.save(); // Ensure save() is called to trigger updatedAt
-      await contact.reload();
 
-    } else if (wbot && ['whatsapp'].includes(channel)) {
-      const settings = await CompaniesSettings.findOne({ where: { companyId } });
-      const { acceptAudioMessageContact } = settings;
+      await contact.save();
+      await contact.reload();
+    }
+
+    /* =====================================
+       CREATE CONTACT
+    ====================================== */
+
+    else {
       let newRemoteJid = remoteJid;
 
-      if (!remoteJid && remoteJid !== "") {
-        newRemoteJid = isGroup ? `${rawNumber}@g.us` : `${rawNumber}@s.whatsapp.net`;
+      if (!remoteJid && numberForCreate) {
+        newRemoteJid = isGroup
+          ? `${numberForCreate}@g.us`
+          : `${numberForCreate}@s.whatsapp.net`;
       }
 
-      try {
-        profilePicUrl = await wbot.profilePictureUrl(remoteJid, "image");
-      } catch (e) {
-        Sentry.captureException(e);
-        profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
+      if (wbot && channel === "whatsapp") {
+        try {
+          profilePicUrl = await wbot.profilePictureUrl(newRemoteJid, "image");
+        } catch (e) {
+          Sentry.captureException(e);
+          profilePicUrl = `${process.env.FRONTEND_URL}/nopicture.png`;
+        }
       }
 
-      contact = await Contact.create({
+      const settings = await CompaniesSettings.findOne({ where: { companyId } });
+
+      const contactCreated = await Contact.create({
         name,
-        number,
+        number: numberForCreate!,
         lid,
         email,
         isGroup,
         companyId,
         customerId,
         channel,
-        acceptAudioMessage: acceptAudioMessageContact === 'enabled' ? true : false,
+        acceptAudioMessage:
+          settings?.acceptAudioMessageContact === "enabled",
         remoteJid: newRemoteJid,
         profilePicUrl,
         urlPicture: "",
@@ -180,81 +229,42 @@ const CreateOrUpdateContactService = async ({
       });
 
       createContact = true;
-    } else if (['facebook', 'instagram'].includes(channel)) {
-      contact = await Contact.create({
-        name,
-        number,
-        lid,
-        email,
-        isGroup,
-        companyId,
-        channel,
-        profilePicUrl,
-        urlPicture: "",
-        whatsappId
-      });
+      await contactCreated.reload();
+      return contactCreated;
     }
 
+    /* =====================================
+       IMAGE DOWNLOAD
+    ====================================== */
 
-
-    if (updateImage) {
-
-
-      let filename;
-
-      filename = await downloadProfileImage({
-        profilePicUrl,
-        companyId,
-        contact
-      })
-
-
-      await contact.update({
-        urlPicture: filename,
-        pictureUpdated: true
+    if (updateImage && contact) {
+      const filename = await downloadProfileImage({
+        profilePicUrl: contact.profilePicUrl,
+        companyId
       });
 
-      await contact.reload();
-    } else {
-      if (['facebook', 'instagram'].includes(channel)) {
-        let filename;
-
-        filename = await downloadProfileImage({
-          profilePicUrl,
-          companyId,
-          contact
-        })
-
-
+      if (filename) {
         await contact.update({
           urlPicture: filename,
           pictureUpdated: true
         });
-
         await contact.reload();
       }
     }
 
-    if (createContact) {
-      io.of(String(companyId))
-        .emit(`company-${companyId}-contact`, {
-          action: "create",
-          contact
-        });
-    } else {
+    /* =====================================
+       SOCKET
+    ====================================== */
 
-      io.of(String(companyId))
-        .emit(`company-${companyId}-contact`, {
-          action: "update",
-          contact
-        });
+    io.of(String(companyId)).emit(`company-${companyId}-contact`, {
+      action: createContact ? "create" : "update",
+      contact
+    });
 
-    }
-
-    return contact;
-  } catch (err) {
-    logger.error("Error to find or create a contact:", err);
-    throw err;
+    return contact!;
+  } catch (error) {
+    logger.error("Error creating or updating contact:", error);
+    throw error;
   }
 };
 

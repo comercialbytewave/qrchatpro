@@ -59,6 +59,7 @@ import paymentDetailRoutes from "./paymentDetailRoutes";
 import typePaymentRoutes from "./typePaymentRoutes";
 import statusBudGetRoutes from "./statusBudGetRoutes";
 import budGetRoutes from "./budGetRoutes";
+import apiBotRoutes from "./api/apiBotRoutes";
 
 const routes = Router();
 
@@ -101,6 +102,7 @@ routes.use(ticketTagRoutes);
 routes.use("/api", apiCompanyRoutes);
 routes.use("/api", apiContactRoutes);
 routes.use("/api", apiMessageRoutes);
+routes.use("/api", apiBotRoutes);
 
 routes.use(flowDefaultRoutes);
 routes.use(webHook)

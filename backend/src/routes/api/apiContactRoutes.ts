@@ -7,6 +7,6 @@ const apiContactRoutes = express.Router();
 
 apiContactRoutes.get("/contacts", isAuthCompany, ContactController.show);
 apiContactRoutes.get("/contacts-count", isAuthCompany, ContactController.count);
-
+apiContactRoutes.get("/contacts", isAuthCompany, ContactController.show);
 
 export default apiContactRoutes;

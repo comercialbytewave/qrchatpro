@@ -91,13 +91,18 @@ const verifyContact = async (msgContact: any, token: any, companyId: any) => {
   if (!msgContact) return null;
 
   const contactData = {
-    name: msgContact?.name || `${msgContact?.first_name} ${msgContact?.last_name}`,
+    name: msgContact?.name || `${msgContact?.first_name || ""} ${msgContact?.last_name || ""}`.trim() || "Contato",
     number: msgContact.id,
     profilePicUrl: msgContact.profile_pic,
     isGroup: false,
     companyId: companyId,
     channel: token.channel,
-    whatsappId: token.id
+    whatsappId: token.id,
+    
+    lid: null,
+    customerId: null,
+    remoteJid: msgContact.id,
+    wbot: null            
   };
 
   const contact = await CreateOrUpdateContactService(contactData);

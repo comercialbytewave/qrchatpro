@@ -153,7 +153,9 @@ export const whatsAppCloudMessageListener = (
 ): void => {
   // Esta função será chamada quando um webhook for recebido
   // O webhook será processado em um controller separado
-  logger.info(`WhatsApp Cloud Message Listener inicializado para ${whatsapp.name}`);
+  logger.info(
+    `WhatsApp Cloud Message Listener inicializado para ${whatsapp.name}`
+  );
 };
 
 // Função para processar mensagens recebidas via webhook
@@ -177,14 +179,21 @@ export const processWhatsAppCloudWebhook = async (
         });
 
         if (!whatsapp) {
-          logger.warn(`WhatsApp não encontrado para phoneNumberId: ${phoneNumberId}`);
+          logger.warn(
+            `WhatsApp não encontrado para phoneNumberId: ${phoneNumberId}`
+          );
           continue;
         }
 
         // Processa mensagens recebidas
         if (value.messages && value.messages.length > 0) {
           for (const message of value.messages) {
-            await processIncomingMessage(message, whatsapp, companyId, value.contacts);
+            await processIncomingMessage(
+              message,
+              whatsapp,
+              companyId,
+              value.contacts
+            );
           }
         }
 
@@ -223,14 +232,20 @@ const processIncomingMessage = async (
     });
 
     if (!contact) {
-      const contactName = contacts?.find(c => c.wa_id === from)?.profile?.name || from;
-      
+      const contactName =
+        contacts?.find(c => c.wa_id === from)?.profile?.name || from;
+
       contact = await CreateOrUpdateContactService({
         name: contactName,
         number: from,
         companyId,
         isGroup: false,
-        remoteJid: `${from}@s.whatsapp.net`
+        remoteJid: `${from}@s.whatsapp.net`,
+        // ⬇️ Adicione estas propriedades para satisfazer o contrato do Service
+        lid: null,
+        customerId: null,
+        whatsappId: null, // Ou o ID da conexão se você tiver disponível
+        wbot: null // Ou a instância da conexão (socket)
       });
     }
 
@@ -264,20 +279,35 @@ const processIncomingMessage = async (
       case "text":
         messageBody = message.text?.body || "";
         break;
-      
+
       case "image":
         messageBody = message.image?.caption || "📷 Imagem";
         mediaType = "image";
         try {
-          const mediaBuffer = await downloadMediaFromWhatsApp(message.image.id, whatsapp);
-          const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
+          const mediaBuffer = await downloadMediaFromWhatsApp(
+            message.image.id,
+            whatsapp
+          );
+          const publicFolder = path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "public"
+          );
           const fileName = `${Date.now()}_${message.image.id}.jpg`;
-          const filePath = path.join(publicFolder, `company${companyId}`, fileName);
-          
+          const filePath = path.join(
+            publicFolder,
+            `company${companyId}`,
+            fileName
+          );
+
           if (!fs.existsSync(path.join(publicFolder, `company${companyId}`))) {
-            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), { recursive: true });
+            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), {
+              recursive: true
+            });
           }
-          
+
           fs.writeFileSync(filePath, mediaBuffer as any);
           mediaUrl = `/public/company${companyId}/${fileName}`;
           mediaName = fileName;
@@ -285,20 +315,35 @@ const processIncomingMessage = async (
           logger.error(`Erro ao baixar imagem: ${err}`);
         }
         break;
-      
+
       case "video":
         messageBody = message.video?.caption || "🎥 Vídeo";
         mediaType = "video";
         try {
-          const mediaBuffer = await downloadMediaFromWhatsApp(message.video.id, whatsapp);
-          const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
+          const mediaBuffer = await downloadMediaFromWhatsApp(
+            message.video.id,
+            whatsapp
+          );
+          const publicFolder = path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "public"
+          );
           const fileName = `${Date.now()}_${message.video.id}.mp4`;
-          const filePath = path.join(publicFolder, `company${companyId}`, fileName);
-          
+          const filePath = path.join(
+            publicFolder,
+            `company${companyId}`,
+            fileName
+          );
+
           if (!fs.existsSync(path.join(publicFolder, `company${companyId}`))) {
-            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), { recursive: true });
+            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), {
+              recursive: true
+            });
           }
-          
+
           fs.writeFileSync(filePath, mediaBuffer as any);
           mediaUrl = `/public/company${companyId}/${fileName}`;
           mediaName = fileName;
@@ -306,20 +351,35 @@ const processIncomingMessage = async (
           logger.error(`Erro ao baixar vídeo: ${err}`);
         }
         break;
-      
+
       case "audio":
         messageBody = "🎵 Áudio";
         mediaType = "audio";
         try {
-          const mediaBuffer = await downloadMediaFromWhatsApp(message.audio.id, whatsapp);
-          const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
+          const mediaBuffer = await downloadMediaFromWhatsApp(
+            message.audio.id,
+            whatsapp
+          );
+          const publicFolder = path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "public"
+          );
           const fileName = `${Date.now()}_${message.audio.id}.ogg`;
-          const filePath = path.join(publicFolder, `company${companyId}`, fileName);
-          
+          const filePath = path.join(
+            publicFolder,
+            `company${companyId}`,
+            fileName
+          );
+
           if (!fs.existsSync(path.join(publicFolder, `company${companyId}`))) {
-            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), { recursive: true });
+            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), {
+              recursive: true
+            });
           }
-          
+
           fs.writeFileSync(filePath, mediaBuffer as any);
           mediaUrl = `/public/company${companyId}/${fileName}`;
           mediaName = fileName;
@@ -327,20 +387,39 @@ const processIncomingMessage = async (
           logger.error(`Erro ao baixar áudio: ${err}`);
         }
         break;
-      
+
       case "document":
-        messageBody = message.document?.caption || `📄 ${message.document?.filename || "Documento"}`;
+        messageBody =
+          message.document?.caption ||
+          `📄 ${message.document?.filename || "Documento"}`;
         mediaType = "document";
         try {
-          const mediaBuffer = await downloadMediaFromWhatsApp(message.document.id, whatsapp);
-          const publicFolder = path.resolve(__dirname, "..", "..", "..", "public");
-          const fileName = message.document?.filename || `${Date.now()}_${message.document.id}`;
-          const filePath = path.join(publicFolder, `company${companyId}`, fileName);
-          
+          const mediaBuffer = await downloadMediaFromWhatsApp(
+            message.document.id,
+            whatsapp
+          );
+          const publicFolder = path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "..",
+            "public"
+          );
+          const fileName =
+            message.document?.filename ||
+            `${Date.now()}_${message.document.id}`;
+          const filePath = path.join(
+            publicFolder,
+            `company${companyId}`,
+            fileName
+          );
+
           if (!fs.existsSync(path.join(publicFolder, `company${companyId}`))) {
-            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), { recursive: true });
+            fs.mkdirSync(path.join(publicFolder, `company${companyId}`), {
+              recursive: true
+            });
           }
-          
+
           fs.writeFileSync(filePath, mediaBuffer as any);
           mediaUrl = `/public/company${companyId}/${fileName}`;
           mediaName = fileName;
@@ -348,12 +427,16 @@ const processIncomingMessage = async (
           logger.error(`Erro ao baixar documento: ${err}`);
         }
         break;
-      
+
       case "location":
         const location = message.location;
-        messageBody = `📍 Localização\nLatitude: ${location.latitude}\nLongitude: ${location.longitude}${location.name ? `\nNome: ${location.name}` : ""}${location.address ? `\nEndereço: ${location.address}` : ""}`;
+        messageBody = `📍 Localização\nLatitude: ${
+          location.latitude
+        }\nLongitude: ${location.longitude}${
+          location.name ? `\nNome: ${location.name}` : ""
+        }${location.address ? `\nEndereço: ${location.address}` : ""}`;
         break;
-      
+
       case "contacts":
         const contactData = message.contacts?.[0];
         if (contactData) {
@@ -362,7 +445,7 @@ const processIncomingMessage = async (
           messageBody = `👤 Contato compartilhado\nNome: ${contactName}\nTelefone: ${contactPhone}`;
         }
         break;
-      
+
       default:
         messageBody = `Mensagem do tipo: ${messageType}`;
     }
@@ -398,12 +481,10 @@ const processIncomingMessage = async (
     // ... código adicional para processar chatbot, filas, etc
 
     const io = getIO();
-    io.of(String(companyId))
-      .emit(`company-${companyId}-ticket`, {
-        action: "update",
-        ticket
-      });
-
+    io.of(String(companyId)).emit(`company-${companyId}-ticket`, {
+      action: "update",
+      ticket
+    });
   } catch (err) {
     Sentry.captureException(err);
     logger.error(`Erro ao processar mensagem recebida: ${err}`);
@@ -450,12 +531,10 @@ const processMessageStatus = async (
     await message.update({ ack });
 
     const io = getIO();
-    io.of(String(companyId))
-      .emit(`company-${companyId}-message`, {
-        action: "update",
-        message
-      });
-
+    io.of(String(companyId)).emit(`company-${companyId}-message`, {
+      action: "update",
+      message
+    });
   } catch (err) {
     Sentry.captureException(err);
     logger.error(`Erro ao processar status da mensagem: ${err}`);
@@ -464,4 +543,3 @@ const processMessageStatus = async (
 
 import fs from "fs";
 import path from "path";
-
